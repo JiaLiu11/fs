@@ -22,6 +22,19 @@ double interpLinearMono(vector<double>* x, vector<double>* y, double xx, bool al
 double interpNearestDirect(vector<double>* x, vector<double>* y, double xx, bool allowExtrapolation=false);
 double interpNearestMono(vector<double>* x, vector<double>* y, double xx, bool allowExtrapolation=false);
 
+inline void interpCubic4PointsArray(double* A0, double* A1, double* A2, double* A3, int length, double dx, double xx, double* results)
+// Assuming that A0, A1, A2, A3 are the values located at 0, dx, 2*dx, and 3*dx, interpolate the value
+// at xx using cubic polynomials.
+{
+    double deltaX = xx - dx;
+    //debug
+    for(int i = 0; i < length; i++)
+       results[i] = (-A0[i]+3.0*A1[i]-3.0*A2[i]+A3[i])/(6.0*dx*dx*dx)*deltaX*deltaX*deltaX
+                   + (A0[i]-2.0*A1[i]+A2[i])/(2.0*dx*dx)*deltaX*deltaX
+                   - (2.0*A0[i]+3.0*A1[i]-6.0*A2[i]+A3[i])/(6.0*dx)*deltaX
+                   + A1[i];
+}
+
 inline double interpCubic4Points(double A0, double A1, double A2, double A3, double dx, double xx)
 // Assuming that A0, A1, A2, A3 are the values located at 0, dx, 2*dx, and 3*dx, interpolate the value
 // at xx using cubic polynomials.
