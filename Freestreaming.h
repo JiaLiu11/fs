@@ -31,12 +31,14 @@ class FreeStrm
 {
 protected:
 	double ****densityTable, ****shiftedTable;
+      double ****densityTableInterp;
 	double ***dNd2rdyTable;
 	double ***dEd2rdyTable;
 	double Xmax,Ymax,Xmin,Ymin,dx,dy, PTmax, PTmin, dpt;
 	int    nRap;
 	double rapMin, rapMax;
 	int    Maxx, Maxy, MaxPT;
+      int    NpTinterp;
 	double Taui, Tauf, Phip;
 	double Xcm, Ycm;    //center of the energy density profile
 
@@ -53,8 +55,11 @@ public:
 	~FreeStrm();
 
 	void ReadTable(string filename);
-	double GetDensity(int iy, int i, int j, int ipt, double phip);  //debugging
+	void GetDensity(int iy, int i, int j, double phip, double* results);  //debugging
+      void GetDensityInterp(int iRap, int i, int j, double phip, double* results);
+      void ShiftDensityInterp(const int iRap, double phip, double ****shiftedTableInterp);
 	void ShiftDensity(const int iy, double phip);   //free stream density to another coordinate with a specific angle
+      void InterpDensity(const int iRap, double* pT, int npT);
 	double GetShiftdeDensity(int iy, int i, int j, int ipt) {return shiftedTable[iy][i][j][ipt];};
 
 	void OutputTable(const char* filename, const int iy);  //output free steamed and pt integrated gluon density

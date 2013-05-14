@@ -37,10 +37,13 @@ FreeStrm::FreeStrm(double xmax, double ymax, double ptmin, double ptmax, double 
     Ycm = 0.;
 //density with pt dependence will be read from 
     densityTable  = new double*** [nRap];
+    densityTableInterp  = new double*** [nRap];
     for(int iy=0;iy<nRap;iy++) {
     densityTable[iy] =  new double** [Maxx];
+    densityTableInterp[iy] =  new double** [Maxx];
     for(int i=0;i<Maxx;i++) {
         densityTable[iy][i] = new double* [Maxy];
+        densityTableInterp[iy][i] = new double* [Maxy];
         for(int j=0;j<Maxy;j++) {
             densityTable[iy][i][j]=new double[MaxPT];
                       for(int ipt=0;ipt<MaxPT; ipt++)
@@ -96,12 +99,18 @@ FreeStrm::~FreeStrm()
 //clean densityTable
     for(int iy=0;iy<nRap;iy++) {
       for(int i=0;i<Maxx;i++) {
-        for(int j=0;j<Maxy;j++) delete [] densityTable[iy][i][j];
+        for(int j=0;j<Maxy;j++) {
+           delete [] densityTable[iy][i][j];
+           delete [] densityTableInterp[iy][i][j];
+        }
         delete [] densityTable[iy][i];
+        delete [] densityTableInterp[iy][i];
         }
     delete [] densityTable[iy];
+    delete [] densityTableInterp[iy];
     }
-    delete [] densityTable;   
+    delete [] densityTable;
+    delete [] densityTableInterp;
 
 //Clean shifted table
     for(int iy=0;iy<nRap;iy++) {
@@ -169,7 +178,7 @@ void FreeStrm::ReadTable(string filename)
 }
 
 
-double FreeStrm::GetDensity(int iRap, int i, int j, int ipt, double phip)
+void FreeStrm::GetDensity(int iRap, int i, int j, double phip, double* results)
 {
     double x,y;     //unshifted coordinate
     double shfedx, shfedy;    //shifed coordinate
@@ -185,10 +194,16 @@ double FreeStrm::GetDensity(int iRap, int i, int j, int ipt, double phip)
     shfedx=x-DTau*cos(Phip);
     shfedy=y-DTau*sin(Phip);
 
+    double *A0 = new double [MaxPT];
+    double *A1 = new double [MaxPT];
+    double *A2 = new double [MaxPT];
+    double *A3 = new double [MaxPT];
 
     if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
-        return 0;
-
+    {
+        for(int ipt = 0; ipt < MaxPT; ipt++)
+           results[i] = 0.0;
+    }
     else
     {   
         it=(shfedx-Xmin)/dx;        
@@ -222,17 +237,18 @@ double FreeStrm::GetDensity(int iRap, int i, int j, int ipt, double phip)
         double xfraction = it-iti;
         double yfraction = jt-jti;
          // row interpolation + extrapolation first
-        double A0 = interpCubic4Points(densityTable[iRap][iti][jti][ipt], densityTable[iRap][iti][jti+1][ipt], 
-          densityTable[iRap][iti][jti+2][ipt], densityTable[iRap][iti][jti+3][ipt], 1, yfraction);
 
-        double A1 = interpCubic4Points(densityTable[iRap][iti+1][jti][ipt], densityTable[iRap][iti+1][jti+1][ipt], 
-          densityTable[iRap][iti+1][jti+2][ipt], densityTable[iRap][iti+1][jti+3][ipt], 1, yfraction);
+        interpCubic4PointsArray(densityTable[iRap][iti][jti], densityTable[iRap][iti][jti+1], 
+          densityTable[iRap][iti][jti+2], densityTable[iRap][iti][jti+3], MaxPT, 1, yfraction, A0);
 
-        double A2 = interpCubic4Points(densityTable[iRap][iti+2][jti][ipt], densityTable[iRap][iti+2][jti+1][ipt], 
-          densityTable[iRap][iti+2][jti+2][ipt], densityTable[iRap][iti+2][jti+3][ipt], 1, yfraction);
+        interpCubic4PointsArray(densityTable[iRap][iti+1][jti], densityTable[iRap][iti+1][jti+1], 
+          densityTable[iRap][iti+1][jti+2], densityTable[iRap][iti+1][jti+3], MaxPT, 1, yfraction, A1);
 
-        double A3 = interpCubic4Points(densityTable[iRap][iti+3][jti][ipt], densityTable[iRap][iti+3][jti+1][ipt], 
-          densityTable[iRap][iti+3][jti+2][ipt], densityTable[iRap][iti+3][jti+3][ipt], 1, yfraction);
+        interpCubic4PointsArray(densityTable[iRap][iti+2][jti], densityTable[iRap][iti+2][jti+1], 
+          densityTable[iRap][iti+2][jti+2], densityTable[iRap][iti+2][jti+3], MaxPT, 1, yfraction, A2);
+
+        interpCubic4PointsArray(densityTable[iRap][iti+3][jti], densityTable[iRap][iti+3][jti+1], 
+          densityTable[iRap][iti+3][jti+2], densityTable[iRap][iti+3][jti+3], MaxPT, 1, yfraction, A3);
 
        // row interpolation + extrapolation first
 //        if(A0<0||A1<0||A2<0||A3<0) 
@@ -242,7 +258,14 @@ double FreeStrm::GetDensity(int iRap, int i, int j, int ipt, double phip)
 //              <<A0<<" "<<A1<<" "<<A2<<" "<<A3<<endl; 	 
 //         exit(0);
 //        }  //debug
-       return interpCubic4Points(A0,A1,A2,A3,1, xfraction);
+       interpCubic4PointsArray(A0,A1,A2,A3, MaxPT, 1, xfraction, results);
+    }
+
+    delete [] A0;
+    delete [] A1;
+    delete [] A2;
+    delete [] A3;
+    return;
 
 
     //revised in Mar.18, 2013
@@ -266,30 +289,154 @@ double FreeStrm::GetDensity(int iRap, int i, int j, int ipt, double phip)
 //  	return Bilinear2dInterp(iti, jti, 1, 1, densityTable[iRap][iti][jti][ipt], 
 //                    densityTable[iRap][iti][jti+1][ipt], densityTable[iRap][iti+1][jti+1][ipt], 
 //                    densityTable[iRap][iti+1][jti][ipt]);
-    }
-
 
 }
 
+void FreeStrm::GetDensityInterp(int iRap, int i, int j, double phip, double* results)
+{
+    double x,y;     //unshifted coordinate
+    double shfedx, shfedy;    //shifed coordinate
+    double DTau, Phip;
+    double it, jt;             //indices corresponding to shifted coordinates
 
+    Phip=phip;
 
+    x=Xmin+i*dx;
+    y=Ymin+j*dy;
+    DTau=Tauf-Taui;
+
+    shfedx=x-DTau*cos(Phip);
+    shfedy=y-DTau*sin(Phip);
+
+    double *A0 = new double [MaxPT];
+    double *A1 = new double [MaxPT];
+    double *A2 = new double [MaxPT];
+    double *A3 = new double [MaxPT];
+
+    if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
+    {
+        for(int ipt = 0; ipt < MaxPT; ipt++)
+           results[i] = 0.0;
+    }
+    else
+    {   
+        it=(shfedx-Xmin)/dx;        
+        jt=(shfedy-Ymin)/dy;
+
+        // boundary safty control
+        if (jt<=0) jt += 1e-10;
+        if (jt>=Maxy-1) jt -= 1e-10;
+        if (it<=0) it += 1e-10;
+        if (it>=Maxx-1) it -= 1e-10;
+        // get integer parts:
+        long int jti = (long int)floor(jt);
+        long int iti = (long int)floor(it);
+
+// Cubic interpolation
+        if (jti<0) jti=0;
+        if (jti>=Maxy-4) 
+          {
+            jti=Maxy-4; // need 4 points
+            // cout<<"out of y boundary"<<endl;
+          }
+
+        if (iti<0) iti=0;       
+        if (iti>=Maxx-4) 
+          { 
+            iti=Maxx-4; // need 4 points
+           // cout<<"out of x boundary"<<endl;
+          }
+//interpolation is done on the x-y grid, 
+
+        double xfraction = it-iti;
+        double yfraction = jt-jti;
+         // row interpolation + extrapolation first
+
+        interpCubic4PointsArray(densityTableInterp[iRap][iti][jti], densityTableInterp[iRap][iti][jti+1], 
+          densityTableInterp[iRap][iti][jti+2], densityTableInterp[iRap][iti][jti+3], NpTinterp, 1, yfraction, A0);
+
+        interpCubic4PointsArray(densityTableInterp[iRap][iti+1][jti], densityTableInterp[iRap][iti+1][jti+1], 
+          densityTableInterp[iRap][iti+1][jti+2], densityTableInterp[iRap][iti+1][jti+3], NpTinterp, 1, yfraction, A1);
+
+        interpCubic4PointsArray(densityTableInterp[iRap][iti+2][jti], densityTableInterp[iRap][iti+2][jti+1], 
+          densityTableInterp[iRap][iti+2][jti+2], densityTableInterp[iRap][iti+2][jti+3], NpTinterp, 1, yfraction, A2);
+
+        interpCubic4PointsArray(densityTableInterp[iRap][iti+3][jti], densityTableInterp[iRap][iti+3][jti+1], 
+          densityTableInterp[iRap][iti+3][jti+2], densityTableInterp[iRap][iti+3][jti+3], NpTinterp, 1, yfraction, A3);
+
+       interpCubic4PointsArray(A0,A1,A2,A3, MaxPT, 1, xfraction, results);
+    }
+
+    delete [] A0;
+    delete [] A1;
+    delete [] A2;
+    delete [] A3;
+    return;
+}
+
+void FreeStrm::ShiftDensityInterp(const int iRap, double phip, double ****shiftedTableInterp)
+{
+
+  double Phip=phip;
+  double* local_results = new double [NpTinterp];
+
+  for(int i=0;i<Maxx;i++)
+  for(int j=0;j<Maxy;j++)
+  {
+    GetDensityInterp(iRap, i , j, Phip, local_results);
+    for(int ipt = 0; ipt < NpTinterp; ipt++)
+       shiftedTableInterp[iRap][i][j][ipt]= local_results[ipt];
+  }
+  delete [] local_results;
+//  cout<<"Profile has been shifted to: "<<Phip<<endl;
+}
 
 void FreeStrm::ShiftDensity(const int iRap, double phip)
 {
 
   double Phip=phip;
+  double* local_results = new double [MaxPT];
 
-    for(int i=0;i<Maxx;i++)
-    for(int j=0;j<Maxy;j++)
-    for(int ipt=0;ipt<MaxPT;ipt++)
-    {
-      shiftedTable[iRap][i][j][ipt]=GetDensity(iRap,i,j,ipt,Phip);
-    }
-              
+  for(int i=0;i<Maxx;i++)
+  for(int j=0;j<Maxy;j++)
+  {
+    GetDensity(iRap, i , j, Phip, local_results);
+    for(int ipt = 0; ipt < MaxPT; ipt++)
+       shiftedTable[iRap][i][j][ipt]= local_results[ipt];
+  }
+  delete [] local_results;
 //  cout<<"Profile has been shifted to: "<<Phip<<endl;
 }
 
 
+void FreeStrm::InterpDensity(const int iRap, double* pT, int npT)
+{
+   NpTinterp = npT;
+   vector<double>* dens1=new vector<double>(MaxPT,0.0);
+   vector<double>* pt0=new vector<double>(MaxPT,0.0);    
+   for(int ipt0 = 0; ipt0 < MaxPT; ipt0++)
+      (*pt0)[ipt0]= (PTmin + dpt*ipt0);
+
+   for(int iy=0;iy<nRap;iy++)
+      for(int i=0;i<Maxx;i++)
+         for(int j=0;j<Maxy;j++)
+         {
+            densityTableInterp[iy][i][j]=new double[npT];
+            for(int ipt = 0; ipt < npT; ipt++)
+               densityTableInterp[iy][i][j][ipt]=0.0;
+         }
+
+   for(int i = 0; i < Maxx; i++)
+      for(int j = 0; j < Maxy; j++)
+      {
+         for(int ipt0 = 0; ipt0 < MaxPT; ipt0++)
+            (*dens1)[ipt0] = densityTable[iRap][i][j][ipt0];
+         for(int ipt = 0; ipt < npT; ipt++)
+            densityTableInterp[iRap][i][j][ipt]=interpCubicDirect(pt0, dens1, pT[ipt]);
+      }
+   delete dens1;
+   delete pt0;
+}
 
 void FreeStrm::OutputTable(const char *filename, const int iRap)
 {
@@ -454,7 +601,6 @@ void FreeStrm::generateEdTable(const int iRap)
         for(int j=0;j<Maxy;j++) {
           for(int ipt=0;ipt<order;ipt++)
           {
-
             for(int k=0;k<MaxPT;k++)
             {
               (*dens1)[k]=shiftedTable[iRap][i][j][k];
