@@ -18,7 +18,7 @@
 #include "arsenal.h"
 #include "EOS.h"
 
-#define INIT_GUESS 40
+#define INIT_GUESS 50
 #define ACCURACY 1e-4
 
 EOS *zq_global_eos;
