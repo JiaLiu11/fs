@@ -147,7 +147,7 @@ FreeStrm::~FreeStrm()
 
 void FreeStrm::ReadTable(string filename)
 {
-  double a,b,c,d;    //temp, ditch them
+  double a,b;  //variables to store the end of the file
   ifstream DataFile(filename.c_str());
   if (!DataFile)
   {
@@ -180,99 +180,90 @@ void FreeStrm::ReadTable(string filename)
 
 void FreeStrm::GetDensity(int iRap, int i, int j, double phip, double* results)
 {
-    double x,y;     //unshifted coordinate
-    double shfedx, shfedy;    //shifed coordinate
-    double DTau, Phip;
-    double it, jt;             //indices corresponding to shifted coordinates
+  double x,y;     //unshifted coordinate
+  double shfedx, shfedy;    //shifed coordinate
+  double DTau, Phip;
+  double it, jt;             //indices corresponding to shifted coordinates
 
-    Phip=phip;
+  Phip=phip;
 
-    x=Xmin+i*dx;
-    y=Ymin+j*dy;
-    DTau=Tauf-Taui;
+  x=Xmin+i*dx;
+  y=Ymin+j*dy;
+  DTau=Tauf-Taui;
 
-    shfedx=x-DTau*cos(Phip);
-    shfedy=y-DTau*sin(Phip);
+  shfedx=x-DTau*cos(Phip);
+  shfedy=y-DTau*sin(Phip);
 
-    double *A0 = new double [MaxPT];
-    double *A1 = new double [MaxPT];
-    double *A2 = new double [MaxPT];
-    double *A3 = new double [MaxPT];
+  double *A0 = new double [MaxPT];
+  double *A1 = new double [MaxPT];
+  double *A2 = new double [MaxPT];
+  double *A3 = new double [MaxPT];
 
-    if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
-    {
-        for(int ipt = 0; ipt < MaxPT; ipt++)
-           results[i] = 0.0;
-    }
-    else
-    {   
-        it=(shfedx-Xmin)/dx;        
-        jt=(shfedy-Ymin)/dy;
+  if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
+  {
+      for(int ipt = 0; ipt < MaxPT; ipt++)
+         results[i] = 0.0;
+  }
+  else
+  {   
+      it=(shfedx-Xmin)/dx;        
+      jt=(shfedy-Ymin)/dy;
 
-        // boundary safty control
-        if (jt<=0) jt += 1e-10;
-        if (jt>=Maxy-1) jt -= 1e-10;
-        if (it<=0) it += 1e-10;
-        if (it>=Maxx-1) it -= 1e-10;
-        // get integer parts:
-        long int jti = (long int)floor(jt);
-        long int iti = (long int)floor(it);
+      // boundary safty control
+      if (jt<=0) jt += 1e-10;
+      if (jt>=Maxy-1) jt -= 1e-10;
+      if (it<=0) it += 1e-10;
+      if (it>=Maxx-1) it -= 1e-10;
+      // get integer parts:
+      long int jti = (long int)floor(jt);
+      long int iti = (long int)floor(it);
 
 // Cubic interpolation
-        if (jti<0) jti=0;
-        if (jti>=Maxy-4) 
-          {
-            jti=Maxy-4; // need 4 points
-            // cout<<"out of y boundary"<<endl;
-          }
+      if (jti<0) jti=0;
+      if (jti>=Maxy-4) 
+        {
+          jti=Maxy-4; // need 4 points
+          // cout<<"out of y boundary"<<endl;
+        }
 
-        if (iti<0) iti=0;       
-        if (iti>=Maxx-4) 
-          { 
-            iti=Maxx-4; // need 4 points
-           // cout<<"out of x boundary"<<endl;
-          }
+      if (iti<0) iti=0;       
+      if (iti>=Maxx-4) 
+        { 
+          iti=Maxx-4; // need 4 points
+         // cout<<"out of x boundary"<<endl;
+        }
 //interpolation is done on the x-y grid, 
 
-        double xfraction = it-iti;
-        double yfraction = jt-jti;
-         // row interpolation + extrapolation first
-
-        interpCubic4PointsArray(densityTable[iRap][iti][jti], densityTable[iRap][iti][jti+1], 
-          densityTable[iRap][iti][jti+2], densityTable[iRap][iti][jti+3], MaxPT, 1, yfraction, A0);
-
-        interpCubic4PointsArray(densityTable[iRap][iti+1][jti], densityTable[iRap][iti+1][jti+1], 
-          densityTable[iRap][iti+1][jti+2], densityTable[iRap][iti+1][jti+3], MaxPT, 1, yfraction, A1);
-
-        interpCubic4PointsArray(densityTable[iRap][iti+2][jti], densityTable[iRap][iti+2][jti+1], 
-          densityTable[iRap][iti+2][jti+2], densityTable[iRap][iti+2][jti+3], MaxPT, 1, yfraction, A2);
-
-        interpCubic4PointsArray(densityTable[iRap][iti+3][jti], densityTable[iRap][iti+3][jti+1], 
-          densityTable[iRap][iti+3][jti+2], densityTable[iRap][iti+3][jti+3], MaxPT, 1, yfraction, A3);
-
+      double xfraction = it-iti;
+      double yfraction = jt-jti;
        // row interpolation + extrapolation first
-//        if(A0<0||A1<0||A2<0||A3<0) 
-//        {
-//          cout<<"hhhaaahaha"<<endl;
-//          cout<<"interpCubic4Points messed up, result="<<endl
-//              <<A0<<" "<<A1<<" "<<A2<<" "<<A3<<endl; 	 
-//         exit(0);
-//        }  //debug
-       interpCubic4PointsArray(A0,A1,A2,A3, MaxPT, 1, xfraction, results);
-    }
 
-    delete [] A0;
-    delete [] A1;
-    delete [] A2;
-    delete [] A3;
-    return;
+      interpCubic4PointsArray(densityTable[iRap][iti][jti], densityTable[iRap][iti][jti+1], 
+        densityTable[iRap][iti][jti+2], densityTable[iRap][iti][jti+3], MaxPT, 1, yfraction, A0);
 
+      interpCubic4PointsArray(densityTable[iRap][iti+1][jti], densityTable[iRap][iti+1][jti+1], 
+        densityTable[iRap][iti+1][jti+2], densityTable[iRap][iti+1][jti+3], MaxPT, 1, yfraction, A1);
 
-    //revised in Mar.18, 2013
-    //switch to linear interpolation since:
-    //1. cubic interpolation assumes smooth function, which is unknown for fKLN output
-    //2. negative result is given by cubic method
-    //interp on boundary
+      interpCubic4PointsArray(densityTable[iRap][iti+2][jti], densityTable[iRap][iti+2][jti+1], 
+        densityTable[iRap][iti+2][jti+2], densityTable[iRap][iti+2][jti+3], MaxPT, 1, yfraction, A2);
+
+      interpCubic4PointsArray(densityTable[iRap][iti+3][jti], densityTable[iRap][iti+3][jti+1], 
+        densityTable[iRap][iti+3][jti+2], densityTable[iRap][iti+3][jti+3], MaxPT, 1, yfraction, A3);
+
+      interpCubic4PointsArray(A0,A1,A2,A3, MaxPT, 1, xfraction, results);
+  }
+
+  delete [] A0;
+  delete [] A1;
+  delete [] A2;
+  delete [] A3;
+  return;
+
+  //revised in Mar.18, 2013
+  //switch to linear interpolation since:
+  //1. cubic interpolation assumes smooth function, which is unknown for fKLN output
+  //2. negative result is given by cubic method
+  //interp on boundary
 //         if (jti<0) jti=0;
 //         if (jti>=Maxy-2) 
 //           {
@@ -294,84 +285,84 @@ void FreeStrm::GetDensity(int iRap, int i, int j, double phip, double* results)
 
 void FreeStrm::GetDensityInterp(int iRap, int i, int j, double phip, double* results)
 {
-    double x,y;     //unshifted coordinate
-    double shfedx, shfedy;    //shifed coordinate
-    double DTau, Phip;
-    double it, jt;             //indices corresponding to shifted coordinates
+  double x,y;     //unshifted coordinate
+  double shfedx, shfedy;    //shifed coordinate
+  double DTau, Phip;
+  double it, jt;             //indices corresponding to shifted coordinates
 
-    Phip=phip;
+  Phip=phip;
 
-    x=Xmin+i*dx;
-    y=Ymin+j*dy;
-    DTau=Tauf-Taui;
+  x=Xmin+i*dx;
+  y=Ymin+j*dy;
+  DTau=Tauf-Taui;
 
-    shfedx=x-DTau*cos(Phip);
-    shfedy=y-DTau*sin(Phip);
+  shfedx=x-DTau*cos(Phip);
+  shfedy=y-DTau*sin(Phip);
 
-    double *A0 = new double [MaxPT];
-    double *A1 = new double [MaxPT];
-    double *A2 = new double [MaxPT];
-    double *A3 = new double [MaxPT];
+  double *A0 = new double [NpTinterp];
+  double *A1 = new double [NpTinterp];
+  double *A2 = new double [NpTinterp];
+  double *A3 = new double [NpTinterp];
+  cout << NpTinterp << endl; exit(0);
+  if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
+  {
+    for(int ipt = 0; ipt < MaxPT; ipt++)
+       results[i] = 0.0;
+  }
+  else
+  {   
+    it=(shfedx-Xmin)/dx;        
+    jt=(shfedy-Ymin)/dy;
 
-    if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
-    {
-        for(int ipt = 0; ipt < MaxPT; ipt++)
-           results[i] = 0.0;
-    }
-    else
-    {   
-        it=(shfedx-Xmin)/dx;        
-        jt=(shfedy-Ymin)/dy;
-
-        // boundary safty control
-        if (jt<=0) jt += 1e-10;
-        if (jt>=Maxy-1) jt -= 1e-10;
-        if (it<=0) it += 1e-10;
-        if (it>=Maxx-1) it -= 1e-10;
-        // get integer parts:
-        long int jti = (long int)floor(jt);
-        long int iti = (long int)floor(it);
+    // boundary safty control
+    if (jt<=0) jt += 1e-10;
+    if (jt>=Maxy-1) jt -= 1e-10;
+    if (it<=0) it += 1e-10;
+    if (it>=Maxx-1) it -= 1e-10;
+    // get integer parts:
+    long int jti = (long int)floor(jt);
+    long int iti = (long int)floor(it);
 
 // Cubic interpolation
-        if (jti<0) jti=0;
-        if (jti>=Maxy-4) 
-          {
-            jti=Maxy-4; // need 4 points
-            // cout<<"out of y boundary"<<endl;
-          }
+    if (jti<0) jti=0;
+    if (jti>=Maxy-4) 
+      {
+        jti=Maxy-4; // need 4 points
+        // cout<<"out of y boundary"<<endl;
+      }
 
-        if (iti<0) iti=0;       
-        if (iti>=Maxx-4) 
-          { 
-            iti=Maxx-4; // need 4 points
-           // cout<<"out of x boundary"<<endl;
-          }
+    if (iti<0) iti=0;       
+    if (iti>=Maxx-4) 
+      { 
+        iti=Maxx-4; // need 4 points
+       // cout<<"out of x boundary"<<endl;
+      }
 //interpolation is done on the x-y grid, 
 
-        double xfraction = it-iti;
-        double yfraction = jt-jti;
-         // row interpolation + extrapolation first
+    double xfraction = it-iti;
+    double yfraction = jt-jti;
+     // row interpolation + extrapolation first
 
-        interpCubic4PointsArray(densityTableInterp[iRap][iti][jti], densityTableInterp[iRap][iti][jti+1], 
-          densityTableInterp[iRap][iti][jti+2], densityTableInterp[iRap][iti][jti+3], NpTinterp, 1, yfraction, A0);
+    interpCubic4PointsArray(densityTableInterp[iRap][iti][jti], densityTableInterp[iRap][iti][jti+1], 
+      densityTableInterp[iRap][iti][jti+2], densityTableInterp[iRap][iti][jti+3], NpTinterp, 1, yfraction, A0);
 
-        interpCubic4PointsArray(densityTableInterp[iRap][iti+1][jti], densityTableInterp[iRap][iti+1][jti+1], 
-          densityTableInterp[iRap][iti+1][jti+2], densityTableInterp[iRap][iti+1][jti+3], NpTinterp, 1, yfraction, A1);
+    interpCubic4PointsArray(densityTableInterp[iRap][iti+1][jti], densityTableInterp[iRap][iti+1][jti+1], 
+      densityTableInterp[iRap][iti+1][jti+2], densityTableInterp[iRap][iti+1][jti+3], NpTinterp, 1, yfraction, A1);
 
-        interpCubic4PointsArray(densityTableInterp[iRap][iti+2][jti], densityTableInterp[iRap][iti+2][jti+1], 
-          densityTableInterp[iRap][iti+2][jti+2], densityTableInterp[iRap][iti+2][jti+3], NpTinterp, 1, yfraction, A2);
+    interpCubic4PointsArray(densityTableInterp[iRap][iti+2][jti], densityTableInterp[iRap][iti+2][jti+1], 
+      densityTableInterp[iRap][iti+2][jti+2], densityTableInterp[iRap][iti+2][jti+3], NpTinterp, 1, yfraction, A2);
 
-        interpCubic4PointsArray(densityTableInterp[iRap][iti+3][jti], densityTableInterp[iRap][iti+3][jti+1], 
-          densityTableInterp[iRap][iti+3][jti+2], densityTableInterp[iRap][iti+3][jti+3], NpTinterp, 1, yfraction, A3);
+    interpCubic4PointsArray(densityTableInterp[iRap][iti+3][jti], densityTableInterp[iRap][iti+3][jti+1], 
+      densityTableInterp[iRap][iti+3][jti+2], densityTableInterp[iRap][iti+3][jti+3], NpTinterp, 1, yfraction, A3);
 
-       interpCubic4PointsArray(A0,A1,A2,A3, MaxPT, 1, xfraction, results);
-    }
+    interpCubic4PointsArray(A0,A1,A2,A3, NpTinterp, 1, xfraction, results);
+  }
 
-    delete [] A0;
-    delete [] A1;
-    delete [] A2;
-    delete [] A3;
-    return;
+  delete [] A0;
+  delete [] A1;
+  delete [] A2;
+  delete [] A3;
+  return;
 }
 
 void FreeStrm::ShiftDensityInterp(const int iRap, double phip, double ****shiftedTableInterp)
@@ -411,9 +402,12 @@ void FreeStrm::ShiftDensity(const int iRap, double phip)
 
 void FreeStrm::InterpDensity(const int iRap, double* pT, int npT)
 {
+/* Interpolate on pt-unintegrated gluon density table for a given array of pt value
+   stored in pT[]. The length of pT[] is npT.
+*/
    NpTinterp = npT;
-   vector<double>* dens1=new vector<double>(MaxPT,0.0);
-   vector<double>* pt0=new vector<double>(MaxPT,0.0);    
+   vector<double>* dens1=new vector<double>(MaxPT,0.0);  //pt table
+   vector<double>* pt0=new vector<double>(MaxPT,0.0);    //
    for(int ipt0 = 0; ipt0 < MaxPT; ipt0++)
       (*pt0)[ipt0]= (PTmin + dpt*ipt0);
 

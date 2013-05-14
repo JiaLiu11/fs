@@ -120,46 +120,36 @@ void LdMatching::CalTmunu(const int iRap)
   gauss_quadrature(order, kind, alpha, beta, phipmin, phipmax,xphip, wphi); 
   gauss_quadrature(order, kind, alpha, beta, PTmin, PTmax, xpt, wpt); 
 
-  Streaming->InterpDensity(iRap, xpt, order);
-
+  Streaming->InterpDensity(iRap, xpt, order);   //For every point at x-y lattice,
+                                                //do interpolation on Pt
   for(int iphi=0;iphi<order;iphi++)
+  {
+    //Initialize the intermedia table which stores shifted profile for certain 
+    //pT and Phi_p
+    double ****shiftedTableInterp = new double*** [nRap];
+    for(int iy = 0; iy < nRap; iy++)
     {
-// set xphip[iphi]=0 instead if no free-streaming
-      double ****shiftedTableInterp = new double*** [nRap];
-      for(int iy = 0; iy < nRap; iy++)
-      {
-          shiftedTableInterp[iy] =  new double** [Maxx];
-          for(int i = 0; i < Maxx; i++)
-          {
-             shiftedTableInterp[iy][i] = new double* [Maxy];
-             for(int j = 0; j < Maxy; j++)
-                shiftedTableInterp[iy][i][j] = new double [order];
-          }
-      }
-
-      Streaming->ShiftDensityInterp(0, xphip[iphi], shiftedTableInterp); 
-
-//Initialize vectors for cubic interpolation
-//      vector<double>* dens1=new vector<double>(MaxPT,0.0);
-//      vector<double>* pt0=new vector<double>(MaxPT,0.0);    
-//      for(int ipt0=0;ipt0<MaxPT;ipt0++)
-//        (*pt0)[ipt0]=(PTmin+dpt*ipt0);
-
-//inner integration: integrate over pt for a certain phi_p.
-      for(int i=0;i<Maxx;i++)  {
-        for(int j=0;j<Maxy;j++) {
-//          for(int k=0;k<MaxPT;k++)
-//             (*dens1)[k]=Streaming->GetShiftdeDensity(iRap, i, j, k); //debug
-          for(int ipt=0;ipt<order;ipt++)
-          {
-//Use 1D cubic interpolation interpCubicDirect(vector<double>* x, vector<double>* y, double x0)
-// to interpolate 
-             //elem=interpCubicDirect(pt0, dens1, xpt[ipt]);
-             elem = shiftedTableInterp[iRap][i][j][ipt];
-             dNd2rdyPhipTable[iRap][i][j][iphi]+=elem*wpt[ipt]*xpt[ipt]*xpt[ipt];
-          }
+        shiftedTableInterp[iy] =  new double** [Maxx];
+        for(int i = 0; i < Maxx; i++)
+        {
+           shiftedTableInterp[iy][i] = new double* [Maxy];
+           for(int j = 0; j < Maxy; j++)
+              shiftedTableInterp[iy][i][j] = new double [order];
         }
-      } //for int i=0;i<Maxx;i++
+    }
+    //shift profile to phi_p
+    Streaming->ShiftDensityInterp(0, xphip[iphi], shiftedTableInterp); 
+
+    //inner integration: integrate over pt for a certain phi_p.
+    for(int i=0;i<Maxx;i++)  {
+      for(int j=0;j<Maxy;j++) {
+        for(int ipt=0;ipt<order;ipt++)
+        {
+           elem = shiftedTableInterp[iRap][i][j][ipt];
+           dNd2rdyPhipTable[iRap][i][j][iphi]+=elem*wpt[ipt]*xpt[ipt]*xpt[ipt];
+        }
+      }
+    } //<->for (int i=0;i<Maxx;i++)
 
     for(int iy = 0; iy < nRap; iy++)
     {
@@ -178,25 +168,21 @@ void LdMatching::CalTmunu(const int iRap)
       for(int i=0;i<Maxx;i++)
         for(int j=0;j<Maxy;j++)
         {
-            T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
-            T00i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi];
-            T01i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi]);
-            T02i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*sin(xphip[iphi]);
-            T11i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi])*cos(xphip[iphi]);
-            T12i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi])*sin(xphip[iphi]);
-            T22i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*sin(xphip[iphi])*sin(xphip[iphi]);
+          T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
+          T00i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi];
+          T01i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi]);
+          T02i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*sin(xphip[iphi]);
+          T11i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi])*cos(xphip[iphi]);
+          T12i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi])*sin(xphip[iphi]);
+          T22i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*sin(xphip[iphi])*sin(xphip[iphi]);
 
-            DataTable->SetTmn(iy ,i, j, 0, 0, T00i+DataTable->GetTmn(iy,i,j,0,0));
-            DataTable->SetTmn(iy ,i, j, 0, 1, T01i+DataTable->GetTmn(iy,i,j,0,1));
-            DataTable->SetTmn(iy ,i, j, 0, 2, T02i+DataTable->GetTmn(iy,i,j,0,2));
-            DataTable->SetTmn(iy ,i, j, 1, 1, T11i+DataTable->GetTmn(iy,i,j,1,1));
-            DataTable->SetTmn(iy ,i, j, 1, 2, T12i+DataTable->GetTmn(iy,i,j,1,2));
-            DataTable->SetTmn(iy ,i, j, 2, 2, T22i+DataTable->GetTmn(iy,i,j,2,2));
-
-            // cout<<dNd2rdyPhipTable[iRap][i][j][iphi1]<<endl;
+          DataTable->SetTmn(iy ,i, j, 0, 0, T00i+DataTable->GetTmn(iy,i,j,0,0));
+          DataTable->SetTmn(iy ,i, j, 0, 1, T01i+DataTable->GetTmn(iy,i,j,0,1));
+          DataTable->SetTmn(iy ,i, j, 0, 2, T02i+DataTable->GetTmn(iy,i,j,0,2));
+          DataTable->SetTmn(iy ,i, j, 1, 1, T11i+DataTable->GetTmn(iy,i,j,1,1));
+          DataTable->SetTmn(iy ,i, j, 1, 2, T12i+DataTable->GetTmn(iy,i,j,1,2));
+          DataTable->SetTmn(iy ,i, j, 2, 2, T22i+DataTable->GetTmn(iy,i,j,2,2));
         } //for int j...  
-    //delete dens1;
-    //delete pt0;
   } //for int iphi=0;iphi<order;iphi++
 
 //fill in the symmetric part of T\mu\nu, and scale the Tmn table by Tau
@@ -215,8 +201,6 @@ void LdMatching::CalTmunu(const int iRap)
         DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/Tauf);
         DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/Tauf);
       }
- 
-
   //Clean intermediate table
     for(int iy=0;iy<nRap;iy++) 
     {
