@@ -1,0 +1,6 @@
+*.dat
+*.[oa]
+*.e
+.DS_Store
+*.~
+*.dSYM
