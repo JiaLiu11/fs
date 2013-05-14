@@ -99,13 +99,6 @@ void LdMatching::CalTmunu(const int iRap)
   double T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
 
   cout<<"Start to calculate T_mn matrix----------------------"<<endl;
-
-//safty check
-  if(Tauf==0)
-  {
-    cout << "Matching is done in tau_f=0!" << endl;
-    exit(0);
-  }
 //free-streamed gluon density table for a certain phi_p
   double ****dNd2rdyPhipTable;
     dNd2rdyPhipTable  = new double*** [nRap];
@@ -130,27 +123,38 @@ void LdMatching::CalTmunu(const int iRap)
   Streaming->InterpDensity(iRap, xpt, order);
 
   for(int iphi=0;iphi<order;iphi++)
-  {
-// set xphip[iphi]=0 instead if no free-streaming
-    double ****shiftedTableInterp = new double*** [nRap];
-    for(int iy = 0; iy < nRap; iy++)
     {
-        shiftedTableInterp[iy] =  new double** [Maxx];
-        for(int i = 0; i < Maxx; i++)
-        {
-           shiftedTableInterp[iy][i] = new double* [Maxy];
-           for(int j = 0; j < Maxy; j++)
-              shiftedTableInterp[iy][i][j] = new double [order];
-        }
-    }
+// set xphip[iphi]=0 instead if no free-streaming
+      double ****shiftedTableInterp = new double*** [nRap];
+      for(int iy = 0; iy < nRap; iy++)
+      {
+          shiftedTableInterp[iy] =  new double** [Maxx];
+          for(int i = 0; i < Maxx; i++)
+          {
+             shiftedTableInterp[iy][i] = new double* [Maxy];
+             for(int j = 0; j < Maxy; j++)
+                shiftedTableInterp[iy][i][j] = new double [order];
+          }
+      }
 
-    Streaming->ShiftDensityInterp(0, xphip[iphi], shiftedTableInterp); 
+      Streaming->ShiftDensityInterp(0, xphip[iphi], shiftedTableInterp); 
+
+//Initialize vectors for cubic interpolation
+//      vector<double>* dens1=new vector<double>(MaxPT,0.0);
+//      vector<double>* pt0=new vector<double>(MaxPT,0.0);    
+//      for(int ipt0=0;ipt0<MaxPT;ipt0++)
+//        (*pt0)[ipt0]=(PTmin+dpt*ipt0);
 
 //inner integration: integrate over pt for a certain phi_p.
       for(int i=0;i<Maxx;i++)  {
         for(int j=0;j<Maxy;j++) {
+//          for(int k=0;k<MaxPT;k++)
+//             (*dens1)[k]=Streaming->GetShiftdeDensity(iRap, i, j, k); //debug
           for(int ipt=0;ipt<order;ipt++)
           {
+//Use 1D cubic interpolation interpCubicDirect(vector<double>* x, vector<double>* y, double x0)
+// to interpolate 
+             //elem=interpCubicDirect(pt0, dens1, xpt[ipt]);
              elem = shiftedTableInterp[iRap][i][j][ipt];
              dNd2rdyPhipTable[iRap][i][j][iphi]+=elem*wpt[ipt]*xpt[ipt]*xpt[ipt];
           }
@@ -190,8 +194,10 @@ void LdMatching::CalTmunu(const int iRap)
             DataTable->SetTmn(iy ,i, j, 2, 2, T22i+DataTable->GetTmn(iy,i,j,2,2));
 
             // cout<<dNd2rdyPhipTable[iRap][i][j][iphi1]<<endl;
-        } //<->for int j=0:Maxy  
-  } //<->for int iphi=0;iphi<order;iphi++
+        } //for int j...  
+    //delete dens1;
+    //delete pt0;
+  } //for int iphi=0;iphi<order;iphi++
 
 //fill in the symmetric part of T\mu\nu, and scale the Tmn table by Tau
   for(int iy=0;iy<nRap;iy++)

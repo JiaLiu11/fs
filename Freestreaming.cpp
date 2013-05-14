@@ -601,6 +601,7 @@ void FreeStrm::generateEdTable(const int iRap)
         for(int j=0;j<Maxy;j++) {
           for(int ipt=0;ipt<order;ipt++)
           {
+
             for(int k=0;k<MaxPT;k++)
             {
               (*dens1)[k]=shiftedTable[iRap][i][j][k];
