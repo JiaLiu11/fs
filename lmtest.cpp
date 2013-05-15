@@ -70,7 +70,7 @@ int main()
     // //         Matching->OutputTmnTable("data/T00_kln.dat");
             epx_of << setw(8)  << setprecision(5) << order
                    << setw(12) << setprecision(5) << tau1
-                   << setw(20) << setprecision(10)<< Matching->getEpx(order)<<endl;
+                   << setw(20) << setprecision(10)<< Matching->getEpx(2)<<endl;
             cout<<"Loop "<<loops<<" complete!"<<endl<<endl; 
             loops++;
             delete Matching;
