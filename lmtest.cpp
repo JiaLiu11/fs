@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <string>
 #include <cstring>
+#include <ctime>
 #include "LdMatching.h"
 #include "Freestreaming.h"
 #include "gauss_quadrature.h"
@@ -10,13 +11,14 @@ using namespace std;
 
 int main()
 {
-// LdMatching(double xmax, double ymax, double ptmin, double ptmax, double dx0,double dy0,
-// 		    double dpt, int nrap, double rmin, double rmax, string filename);
-
-//----------------resume after debug    
   double tau_min=0.0, dtau=1.2;
   double tau_max=1.2;
   int nevents=1;
+
+  //Timing the current run
+  time_t start, end;
+  double cpu_time_used;
+  start = clock();
 
   //processing events
   for(int event_num=1;event_num<=nevents;event_num++)
@@ -33,5 +35,10 @@ int main()
         tau_min, tau_max, dtau);
     delete Matching;
   }
+
+  end = clock();
+  cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+  cout << "Time elapsed (in seconds): " << cpu_time_used << endl;
   return 0;
 }
