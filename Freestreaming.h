@@ -10,7 +10,7 @@
 /*
 revise history:
 Apr.02, 2013
-Add the function to calculate spatial eccentricity: firstly find the 
+Add the function to calculate spatial eccentricity
 
 Mar.22, 2013
 1. To maintain higher precision, use cubic interpolation again, but set negative 
@@ -30,32 +30,24 @@ using namespace std;
 class FreeStrm
 {
 protected:
-	double ****densityTable, ****shiftedTable;
-	double ***dNd2rdyTable;
-	double ***dEd2rdyTable;
-	double Xmax,Ymax,Xmin,Ymin,dx,dy, PTmax, PTmin, dpt;
+	double ***shiftedTable;
+	double ***unshiftedTable;
+	double Xmax,Ymax,Xmin,Ymin,dx,dy;
 	int    nRap;
 	double rapMin, rapMax;
-	int    Maxx, Maxy, MaxPT;
+	int    Maxx, Maxy;
 	double Taui, Tauf, Phip;
-	double Xcm, Ycm;    //center of the energy density profile
-
-	void findCM(double ***source, const int iRap = 0);  //find the center of the profile
-
-	//A general function to shift data table to a new center (x0, y0) and/or rotate phi clockwisely
-	double getShiftedProfile(double ***data, int i, int j, double x0, double y0, 
-		double phi = 0, bool limit=false, const int iRap=0);  
-
+	double PTmin, dpt, PTmax, MaxPT;
+	double Xcm, Ycm;    //center of the energy density profile  
 
 public:
-	FreeStrm(double xmax, double ymax, double ptmin, double ptmax, double dx0,double dy0,
-			    double dpt, int nrap, double rmin, double rmax, double taui, double tauf);
+	FreeStrm(double xmax, double ymax, double dx0,double dy0,
+			    int nrap, double rmin, double rmax, double taui, double tauf);
 	~FreeStrm();
 
-	void ReadTable(string filename);
-	double GetDensity(int iy, int i, int j, int ipt, double phip);  //debugging
+    void CopyTable(double ***source);  //copy data table from outside
+	double GetDensity(int iy, int i, int j, double phip);  //debugging
 	void ShiftDensity(const int iy, double phip);   //free stream density to another coordinate with a specific angle
-	double GetShiftdeDensity(int iy, int i, int j, int ipt) {return shiftedTable[iy][i][j][ipt];};
 
 	void OutputTable(const char* filename, const int iy);  //output free steamed and pt integrated gluon density
 	void dumpBlockTable(const char *filename, double ***data, const int iy);
@@ -63,12 +55,8 @@ public:
 	void CreateDataTable(const char *filename, const int iy=0); //testing
 	double GaussProfile(const int iy, int i, int j, int ipt);  		//generating test profile
 	double BoxProfile(const int iRap, int i, int j, int ipt);
-	void GetInteDensity(const int iy);   //test integration
-
-	void generateEdTable(const int iRap=0);
+	
 	double getEpx(int n, const int iRap=0);    //calculate eccentricity in the free-streaming stage
-
-
 };
 
 

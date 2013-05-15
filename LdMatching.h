@@ -29,13 +29,14 @@ class LdMatching
 private:	
     FreeStrm *Streaming;
     CellData *DataTable;
-	double Xmax,Ymax,Xmin,Ymin,dx,dy, PTmax, PTmin, dpt;
+    double*** dNd2rdyTable;
+	double Xmax,Ymax,Xmin,Ymin,dx,dy;
     double Xcm, Ycm;  //center of the energy density 
     double edMax;  //maximum energy density in the lab frame
 	int    nRap;
 	double rapMin, rapMax;
-	int    Maxx, Maxy, MaxPT;
-	double Taui, Tauf, Phip;
+	int    Maxx, Maxy;
+	double Taui, Tauf, Dtau;
 	int EOS_type;
 	EOS eos;
 
@@ -47,15 +48,16 @@ private:
 
 
 public:
-	LdMatching(double xmax, double ymax, double ptmin, double ptmax, double dx0,double dy0,
-		    double dpt0, int ny, double rapmin, double rapmax, double taui, double tauf, int iEOS,
-            string filename);
+	LdMatching(double xmax, double ymax, double dx0,double dy0,
+		    int ny, double rapmin, double rapmax,
+            int iEOS);
 	~LdMatching();
 	void echo();
 	void Diagnostic(int iRap, int i, int j);
+    void MultiMatching(string filename, double taui, double tauf, double dtau);
 
 	void ReadTable(string filename);
-    void CalTmunu(const int iRap); 
+    void CalTmunu(const int iRap, double delta_tau); 
     void Matching_eig(const int nRap);
     //useful routines for matrix manipulations
     void Lower_matrix_single(gsl_matrix *dest, gsl_matrix *src);

@@ -10,57 +10,53 @@
 using namespace std;
 
 
-LdMatching::LdMatching(double xmax, double ymax, double ptmin, double ptmax, double dx0,double dy0,
-		    double dpt0, int ny, double rapmin, double rapmax, double taui, double tauf, int iEOS,
-        string filename)
+LdMatching::LdMatching(double xmax, double ymax, double dx0,double dy0,
+        int ny, double rapmin, double rapmax,
+            int iEOS)
 {
-    Xmax=xmax;
-    Ymax=ymax;
-    Xmin=-xmax;
-    Ymin=-ymax;
+  Xmax=xmax;
+  Ymax=ymax;
+  Xmin=-xmax;
+  Ymin=-ymax;
+
+  dx=dx0;
+  dy=dy0;
+  Maxx=(int)((Xmax-Xmin)/dx+0.1)+1;
+  Maxy=(int)((Ymax-Ymin)/dy+0.1)+1;
+  nRap=ny;
+  rapMin=rapmin;
+  rapMax=rapmax;
+
+  //center of the profile, max energy initialization
+  Xcm = 0.;
+  Ycm = 0.;
+  edMax = -1.;
+  dNd2rdyTable = 0;
+  echo();  //output basic information of the current run
+
+  EOS_type = iEOS;
+  if(EOS_type==2)
+  eos.loadEOSFromFile((char*)"s95p-PCE/EOS_converted.dat", (char*)"s95p-PCE/coeff.dat");  //load S95 EOS table
     
-    PTmax=ptmax;
-    PTmin=ptmin;
-    dpt=dpt0;
-    MaxPT=(int)((PTmax-PTmin)/dpt+0.1)+1;
-
-    dx=dx0;
-    dy=dy0;
-    Maxx=(int)((Xmax-Xmin)/dx+0.1)+1;
-    Maxy=(int)((Ymax-Ymin)/dy+0.1)+1;
-    nRap=ny;
-    rapMin=rapmin;
-    rapMax=rapmax;
-
-    Taui=taui;
-    Tauf=tauf;
-
-    //center of the profile, max energy initialization
-    Xcm = 0.;
-    Ycm = 0.;
-    edMax = -1.;
-
-    echo();  //output basic information of the current run
-
-    Streaming=new FreeStrm(Xmax, Ymax, PTmin, PTmax, dx, dy,
-        dpt, nRap, rapMin, rapMax, Taui, Tauf);
-    DataTable=new CellData(Xmax, Ymax, dx, dy, nRap, rapMin, rapMax);
-
-    EOS_type = iEOS;
-    if(EOS_type==2)
-    eos.loadEOSFromFile((char*)"s95p-PCE/EOS_converted.dat", (char*)"s95p-PCE/coeff.dat");  //load S95 EOS table
-      
 // // Read from streamed profile
 //     Streaming->CreateDataTable("GaussianProfile.dat"); 
-    Streaming->ReadTable(filename);  //use KLN output file
 }
 
 
 LdMatching::~LdMatching()
 {
-    delete DataTable;
-    delete Streaming;
-
+  //Clean data table
+  if(dNd2rdyTable!=0)
+  {
+    for(int iy=0;iy<nRap;iy++)  {
+        {
+          for(int i=0;i<Maxx;i++) 
+            delete [] dNd2rdyTable[iy][i];
+        }
+      delete [] dNd2rdyTable[iy];
+      }
+    delete [] dNd2rdyTable;      
+  }  
 }
 
 void LdMatching::echo()
@@ -71,12 +67,10 @@ void LdMatching::echo()
   cout<<"Parameters for free-streaming and Landau matching:"<<endl
       <<"x range: "<<Xmin<<", "<<Xmax<<"     "<<endl
       <<"y range: "<<Ymin<<", "<<Ymax<<"     "<<endl
-      <<"Pt range: " <<PTmin<<", "<<PTmax<<endl
       <<"Rapidity range: "<<rapMin<<", "<<rapMax<<"     "<<endl
-      <<"slicing: dx="<<dx<<", dy="<<dy<<", dpt="<<dpt<<endl
-      <<"Initial time: "<<Taui<<", matching time: "<<Tauf<<endl;
+      <<"slicing: dx="<<dx<<", dy="<<dy<<endl;
   if(EOS_type == 1)
-    cout << "EOS: Ideal gas"<<endl;
+    cout << "EOS: Ideal gas"<<endl<<endl;
   else if(EOS_type == 2)
   {
     cout<<"EOS: S95p-PCE"<<endl<<endl;
@@ -84,130 +78,182 @@ void LdMatching::echo()
 }
 
 
-void LdMatching::CalTmunu(const int iRap)
+
+
+void LdMatching::MultiMatching(string filename, double taui, double tauf, double dtau)
 {
-//block for gaussian integration
+/* Read in one matter distribution and do multiple times free-streaming and 
+   Landau matching
+*/
+  //use KLN output file
+  ReadTable(filename);
+  //
+  Taui = taui;
+  Tauf = tauf;
+  Dtau = dtau;
+  int maxT = (int)((Tauf-Taui)/Dtau+0.1)+1;
+
+  for(int t_i=0; t_i < maxT; t_i++)
+  {
+    double tau0 = Taui;
+    double tau1 = tau0 + t_i * Dtau;
+    double delta_tau = t_i*Dtau;
+
+    cout << "Start to Free-stream the profile from tau0=" << tau0
+         << " to tau=" << tau1
+         << ", then do the Landau Matching." << endl;
+
+    Streaming=new FreeStrm(Xmax, Ymax, dx, dy,
+          nRap, rapMin, rapMax, tau0, tau1);
+    Streaming->CopyTable(dNd2rdyTable);  //assign data table to FreeStrm class
+                                         //to speed up interpolation
+    //data table for LdMatching result et.al.
+    DataTable=new CellData(Xmax, Ymax, dx, dy, nRap, rapMin, rapMax);
+    
+    CalTmunu(0, delta_tau);
+    Matching_eig(1);
+        
+    CalPresTable();  //only can be done if ed table is ready
+    //  Matching->GenerateSdTable(); //only can be done if ed table is ready
+    CalBulkVis();
+    CalShearVis();
+
+    // ostringstream filename_stream_ux;
+    // filename_stream_ux.str("");
+    // filename_stream_ux << "data/ux_profile_kln_tauf_" << tau1 << ".dat";
+    // ostringstream filename_stream_uy;
+    // filename_stream_uy.str("");
+    // filename_stream_uy << "data/uy_profile_kln_tauf_" << tau1 << ".dat";
+    // Matching->OutputTable_ux(filename_stream_ux.str().c_str());
+    // Matching->OutputTable_uy(filename_stream_uy.str().c_str());
+
+    cout << setw(8)  << setprecision(5) << tau0
+       << setw(12) << setprecision(5) << tau1
+       << setw(20) << setprecision(10)<< getEpx(2,0)
+       << setw(20) << setprecision(10)<< getEpx(3,0)<<endl;
+
+    cout << "Matching is done at tau=" << tau1 
+         << "!" << endl;
+    //clean up before leaving
+    delete DataTable;
+    delete Streaming;
+  }
+}
+
+
+void LdMatching::ReadTable(string filename)
+{
+  //initialize dN/dyd^2r table
+  dNd2rdyTable  = new double** [nRap];
+  for(int iy=0;iy<nRap;iy++) {
+  dNd2rdyTable[iy] =  new double* [Maxx];
+  for(int i=0;i<Maxx;i++) {
+      dNd2rdyTable[iy][i] = new double [Maxy];
+      for(int j=0;j<Maxy;j++) {
+          dNd2rdyTable[iy][i][j]=0.0;
+      }
+    }
+  }
+
+  double a,b;    //temp variables help to reach the end of the data file
+  ifstream DataFile(filename.c_str());
+  if (!DataFile)
+  {
+     cout << "ReadTable::readFromFile error: file " << filename << " does not exist." << endl;
+     exit(-1);
+  }
+
+  cout << "Start to read in data table " << filename << endl;
+  while (!DataFile.eof())
+  {
+    string comment_line;  //store comment line
+    getline(DataFile, comment_line);  //read in to skip the comment line
+    cout << comment_line << endl;
+    
+    for(int iy=0;iy<nRap;iy++)
+      for(int i=0;i<Maxx;i++)
+          for(int j=0;j<Maxy;j++)
+          {
+            DataFile>>dNd2rdyTable[iy][i][j];
+          }
+    DataFile >> a >> b;  //safty procedure, reach the end of the file
+    cout << "Read in complete!" << endl;  //this line should only be output once
+  }
+  DataFile.close();
+  cout << "Data table has been read into memory!" << endl;
+}
+
+
+
+void LdMatching::CalTmunu(const int iRap, double delta_tau)
+{
+  //safty check
+  if(dNd2rdyTable==0)
+  {
+    cout << "Calculating Tmn needs dN/dyd^2r table!" << endl;
+    exit(-1);
+  }
+  if(delta_tau==0)
+  {
+    cout << "Matching at inital time! Scale the energy density afterwards!" << endl;
+    delta_tau = 1;
+  }
+  //block for gaussian integration
   int kind=1;
   const int order=100;   //debugging
   double alpha=0.0, beta=0.0;
   double xphip[order],wphi[order];
-  double xpt[order],wpt[order];
-  double elem;
 
   double phipmin=0.0, phipmax=2.0*M_PI;
-//temp
+  //temp variables
   double T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
 
   cout<<"Start to calculate T_mn matrix----------------------"<<endl;
-//free-streamed gluon density table for a certain phi_p
-  double ****dNd2rdyPhipTable;
-    dNd2rdyPhipTable  = new double*** [nRap];
-    for(int iy=0;iy<nRap;iy++) 
+
+  gauss_quadrature(order, kind, alpha, beta, phipmin, phipmax, xphip, wphi); 
+
+  for(int i=0;i<Maxx;i++)  
+    for(int j=0;j<Maxy;j++)  //loop over the transverse plane
     {
-      dNd2rdyPhipTable[iy] =  new double** [Maxx];
-      for(int i=0;i<Maxx;i++) 
+      for(int iphi=0;iphi<order;iphi++)  //loop over Gaussian points for phi
       {
-        dNd2rdyPhipTable[iy][i] = new double* [Maxy];
-        for(int j=0;j<Maxy;j++) 
-        {
-            dNd2rdyPhipTable[iy][i][j]=new double[order];
-              for(int iphip=0;iphip<order; iphip++)
-                    dNd2rdyPhipTable[iy][i][j][iphip]=0.0;
-        }
+        T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
+        double rotate_angle = xphip[iphi];
+        double rotatedDens=Streaming->GetDensity(iRap, i, j, rotate_angle);
+
+        T00i=rotatedDens*wphi[iphi];
+        T01i=rotatedDens*wphi[iphi]*cos(rotate_angle);
+        T02i=rotatedDens*wphi[iphi]*sin(rotate_angle);
+        T11i=rotatedDens*wphi[iphi]*cos(rotate_angle)*cos(rotate_angle);
+        T12i=rotatedDens*wphi[iphi]*cos(rotate_angle)*sin(rotate_angle);
+        T22i=rotatedDens*wphi[iphi]*sin(rotate_angle)*sin(rotate_angle);
+
+        DataTable->SetTmn(iRap ,i, j, 0, 0, T00i+DataTable->GetTmn(iRap,i,j,0,0));
+        DataTable->SetTmn(iRap ,i, j, 0, 1, T01i+DataTable->GetTmn(iRap,i,j,0,1));
+        DataTable->SetTmn(iRap ,i, j, 0, 2, T02i+DataTable->GetTmn(iRap,i,j,0,2));
+        DataTable->SetTmn(iRap ,i, j, 1, 1, T11i+DataTable->GetTmn(iRap,i,j,1,1));
+        DataTable->SetTmn(iRap ,i, j, 1, 2, T12i+DataTable->GetTmn(iRap,i,j,1,2));
+        DataTable->SetTmn(iRap ,i, j, 2, 2, T22i+DataTable->GetTmn(iRap,i,j,2,2));
       }
-    } 
-
-  gauss_quadrature(order, kind, alpha, beta, phipmin, phipmax,xphip, wphi); 
-  gauss_quadrature(order, kind, alpha, beta, PTmin, PTmax, xpt, wpt); 
-
-  for(int iphi=0;iphi<order;iphi++)
-    {
-// set xphip[iphi]=0 instead if no free-streaming
-      Streaming->ShiftDensity(0, xphip[iphi]); 
-
-//Initialize vectors for cubic interpolation
-      vector<double>* dens1=new vector<double>(MaxPT,0.0);
-      vector<double>* pt0=new vector<double>(MaxPT,0.0);    
-      for(int ipt0=0;ipt0<MaxPT;ipt0++)
-        (*pt0)[ipt0]=(PTmin+dpt*ipt0);
-
-//inner integration: integrate over pt for a certain phi_p.
-      for(int i=0;i<Maxx;i++)  
-      {
-        for(int j=0;j<Maxy;j++) 
-        {
-          //get shifted profile for one (x,y) point
-          vector<double>* dens1=new vector<double>(MaxPT,0.0);
-          for(int k=0;k<MaxPT;k++)
-            (*dens1)[k]=Streaming->GetShiftdeDensity(iRap, i, j, k);
-
-          for(int ipt=0;ipt<order;ipt++)
-          {
-//Use 1D cubic interpolation interpCubicDirect(vector<double>* x, vector<double>* y, double x0)
-// to interpolate on pt
-          elem=interpCubicDirect(pt0, dens1, xpt[ipt]);
-          dNd2rdyPhipTable[iRap][i][j][iphi]+=elem*wpt[ipt]*xpt[ipt]*xpt[ipt];
-         }
-       }
-      } //<->for int i=0;i<Maxx;i++
-
-    for(int iy=0;iy<nRap;iy++)
-      for(int i=0;i<Maxx;i++)
-        for(int j=0;j<Maxy;j++)
-        {
-            T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
-            T00i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi];
-            T01i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi]);
-            T02i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*sin(xphip[iphi]);
-            T11i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi])*cos(xphip[iphi]);
-            T12i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*cos(xphip[iphi])*sin(xphip[iphi]);
-            T22i=dNd2rdyPhipTable[iRap][i][j][iphi]*wphi[iphi]*sin(xphip[iphi])*sin(xphip[iphi]);
-
-            DataTable->SetTmn(iy ,i, j, 0, 0, T00i+DataTable->GetTmn(iy,i,j,0,0));
-            DataTable->SetTmn(iy ,i, j, 0, 1, T01i+DataTable->GetTmn(iy,i,j,0,1));
-            DataTable->SetTmn(iy ,i, j, 0, 2, T02i+DataTable->GetTmn(iy,i,j,0,2));
-            DataTable->SetTmn(iy ,i, j, 1, 1, T11i+DataTable->GetTmn(iy,i,j,1,1));
-            DataTable->SetTmn(iy ,i, j, 1, 2, T12i+DataTable->GetTmn(iy,i,j,1,2));
-            DataTable->SetTmn(iy ,i, j, 2, 2, T22i+DataTable->GetTmn(iy,i,j,2,2));
-
-            // cout<<dNd2rdyPhipTable[iRap][i][j][iphi1]<<endl;
-        } //<-> for iy=0:nRap 
-
-    delete dens1;
-    delete pt0;
-  } //for int iphi=0;iphi<order;iphi++
+    } //<->for int i=0;i<Maxx;i++
 
 //fill in the symmetric part of T\mu\nu, and scale the Tmn table by Tau
   for(int iy=0;iy<nRap;iy++)
     for(int i=0;i<Maxx;i++)
       for(int j=0;j<Maxy;j++)
       {
-        DataTable->SetTmn(iy ,i, j, 1, 0, DataTable->GetTmn(iy,i,j,0,1)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 2, 0, DataTable->GetTmn(iy,i,j,0,2)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 2, 1, DataTable->GetTmn(iy,i,j,1,2)/Tauf);
+        DataTable->SetTmn(iy ,i, j, 1, 0, DataTable->GetTmn(iy,i,j,0,1)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 2, 0, DataTable->GetTmn(iy,i,j,0,2)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 2, 1, DataTable->GetTmn(iy,i,j,1,2)/delta_tau);
 
-        DataTable->SetTmn(iy ,i, j, 0, 0, DataTable->GetTmn(iy,i,j,0,0)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 0, 1, DataTable->GetTmn(iy,i,j,0,1)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 0, 2, DataTable->GetTmn(iy,i,j,0,2)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 1, 1, DataTable->GetTmn(iy,i,j,1,1)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/Tauf);
-        DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/Tauf);
-      }
- 
-
-  //Clean intermediate table
-    for(int iy=0;iy<nRap;iy++) 
-    {
-      for(int i=0;i<Maxx;i++) 
-      {
-        for(int j=0;j<Maxy;j++) 
-          delete [] dNd2rdyPhipTable[iy][i][j];
-        delete [] dNd2rdyPhipTable[iy][i];
-        }
-    delete [] dNd2rdyPhipTable[iy];
-    }
-    delete [] dNd2rdyPhipTable; 
-    cout<<"Tmn table complete!"<<endl;
+        DataTable->SetTmn(iy ,i, j, 0, 0, DataTable->GetTmn(iy,i,j,0,0)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 0, 1, DataTable->GetTmn(iy,i,j,0,1)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 0, 2, DataTable->GetTmn(iy,i,j,0,2)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 1, 1, DataTable->GetTmn(iy,i,j,1,1)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/delta_tau);
+      } 
+  cout<<"Tmn table complete!"<<endl;
 }
 
 
