@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # C compiler
-CC=`which g++`; CFLAGS=" -O3 -Wall -lgsl -lgslcblas"
+CC=`which g++`; CFLAGS=" -O2 -Wall -lgsl -lgslcblas"
 
 
 #$CC Freestreaming.cpp testfs.cpp arsenal.cpp mistools.cpp gauss_quadrature.cpp -o fs.e  $CFLAGS
