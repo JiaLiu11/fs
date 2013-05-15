@@ -14,8 +14,8 @@ int main()
 // 		    double dpt, int nrap, double rmin, double rmax, string filename);
 
 //----------------resume after debug    
-  double tau_min=0.0, dtau=2;
-  double tau_max=2;
+  double tau_min=0.0, dtau=1.2;
+  double tau_max=1.2;
   int nevents=1;
 
   //processing events
