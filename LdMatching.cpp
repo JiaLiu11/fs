@@ -201,6 +201,8 @@ void LdMatching::CalTmunu(const int iRap)
         DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/Tauf);
         DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/Tauf);
       }
+
+  OutputTmnTable("data/T00_ori.dat");
   //Clean intermediate table
     for(int iy=0;iy<nRap;iy++) 
     {

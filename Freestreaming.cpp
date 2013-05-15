@@ -303,7 +303,7 @@ void FreeStrm::GetDensityInterp(int iRap, int i, int j, double phip, double* res
   double *A1 = new double [NpTinterp];
   double *A2 = new double [NpTinterp];
   double *A3 = new double [NpTinterp];
-  cout << NpTinterp << endl; exit(0);
+
   if( (shfedx>Xmax||shfedx<Xmin) ||(shfedy>Ymax||shfedy<Ymin) )  //coordinates locate outside of the grid
   {
     for(int ipt = 0; ipt < MaxPT; ipt++)

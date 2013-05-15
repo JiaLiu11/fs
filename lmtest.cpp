@@ -16,9 +16,9 @@ int main()
 // 		    double dpt, int nrap, double rmin, double rmax, int iEOS, string filename);
 
 //----------------resume after debug    
-    double  dtau=0.02;
+    double  dtau=1.2;
     double tau0, tau1;
-    int norder=2;
+    int norder=1;
     
     ofstream epx_of;
     epx_of.open("data/Epx_matched_Avg_time_evolve.dat",std::ios_base::app);
@@ -30,13 +30,13 @@ int main()
     start = clock();
 
     //processing events
-    for(int order=2;order<=norder;order++)
+    for(int order=1;order<=norder;order++)
     {
         int loops=1;
         //prepare readin filename
         ostringstream filename_stream;
         filename_stream.str("");
-        filename_stream << "data/sdAvg_order_"
+        filename_stream << "data/sd_event_"
                         << order  <<"_5col.dat";
         //processing free-streaming and matching                
         for(int i=1;i<2;i++)
