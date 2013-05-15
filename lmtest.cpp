@@ -14,9 +14,9 @@ int main()
 // 		    double dpt, int nrap, double rmin, double rmax, string filename);
 
 //----------------resume after debug    
-  double tau_min=0.0, dtau=0.6;
-  double tau_max=0.6;
-  int nevents=20;
+  double tau_min=0.0, dtau=2;
+  double tau_max=2;
+  int nevents=1;
 
   //processing events
   for(int event_num=1;event_num<=nevents;event_num++)
@@ -25,7 +25,7 @@ int main()
     ostringstream filename_stream;
     filename_stream.str("");
     filename_stream << "data/sd_event_"
-                    << event_num  <<"_5col.dat";
+                    << event_num  <<"_block.dat";
 
     LdMatching *Matching;
     Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 1);

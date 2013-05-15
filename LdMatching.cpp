@@ -93,7 +93,7 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
   Dtau = dtau;
   int maxT = (int)((Tauf-Taui)/Dtau+0.1)+1;
 
-  for(int t_i=0; t_i < maxT; t_i++)
+  for(int t_i=1; t_i < maxT; t_i++)
   {
     double tau0 = Taui;
     double tau1 = tau0 + t_i * Dtau;
@@ -253,6 +253,7 @@ void LdMatching::CalTmunu(const int iRap, double delta_tau)
         DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/delta_tau);
         DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/delta_tau);
       } 
+  OutputTmnTable("data/T00.dat");
   cout<<"Tmn table complete!"<<endl;
 }
 
@@ -406,10 +407,10 @@ void LdMatching::Matching_eig(const int nRap)
   regulateUm();
 
   //prepare file name
-  // ostringstream filename_stream;
-  // filename_stream.str("");
-  // filename_stream << "data/ed_profile_kln_tauf_" << Tauf << ".dat";
-  // OutputTable_ed(filename_stream.str().c_str(), 0);  
+  ostringstream filename_stream;
+  filename_stream.str("");
+  filename_stream << "data/ed_profile_kln_tauf_" << Tauf << ".dat";
+  OutputTable_ed(filename_stream.str().c_str(), 0);  
 }
 
 
