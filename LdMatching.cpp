@@ -610,7 +610,7 @@ void LdMatching::CalBulkVis(const int nRap)
       }
   ostringstream filename_stream;
   filename_stream.str("");
-  filename_stream << "data/ed_profile_kln_tauf_" << Taui+delta_tau << ".dat";
+  filename_stream << "data/BulkPi_kln_tauf_" << Taui+delta_tau << ".dat";
   OutputTable_BulkPi(filename_stream.str().c_str(), 0);  
 
   cout<<"Bulk viscosity table complete!"<<endl<<endl; 
@@ -705,9 +705,9 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-      //   if(i==116 && j==93)  //debug
-      //   Diagnostic(iy, i, j);
-      // }
+      if(i==85 && j==98)  //debug
+        Diagnostic(iy, i, j);
+  }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;
 
@@ -1426,23 +1426,19 @@ void LdMatching::OutputTable_ed(const char *filename, const int iRap)
   of.open(filename, std::ios_base::out);
 
   of<<"% Energy Density profile for x=(" << Xmin <<", "<<Xmax <<") "
-                                 <<"y=(" << Ymin <<", "<<Ymax <<") "
+                                 <<"y=(" << Ymin <<", "<<Ymax <<"), "
                                          <<"Rapidity: "<<rapMin+ iRap* nRap
-                                         << endl;                                   
+                                         << endl;                          
   for(int i=0;i<Maxx;i++)      
   {
     for(int j=0;j<Maxy;j++)
-    { 
-      of << scientific << setprecision(10) << setw(16) << DataTable->GetEd(iRap, i, j);  //need revise
-      if(i==116 && j==93)  //debug
-        cout << scientific << setprecision(10) << setw(16) << DataTable->GetEd(iRap, i, j);
-    }
+      of << setprecision(12) << setw(22) << DataTable->GetEd(iRap, i, j);  //need revise
     of  << endl;
   }
-  cout << setprecision(12) << setw(22) << DataTable->GetEd(iRap, 116, 93) << endl;
   cout<<"Energy density table has been printed out!"<<endl;
   of.close();
 }
+
 
 void LdMatching::OutputTable_BulkPi(const char *filename, const int iRap)
 {
