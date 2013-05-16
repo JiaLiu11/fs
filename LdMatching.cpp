@@ -253,7 +253,7 @@ void LdMatching::CalTmunu(const int iRap, double delta_tau)
         DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/delta_tau);
         DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/delta_tau);
       } 
-  OutputTmnTable("data/T00.dat");  //debug
+  OutputTmnTable("data/T00.dat", 0, 0, 0);  //debug
   cout<<"Tmn table complete!"<<endl;
 }
 
@@ -437,8 +437,9 @@ void LdMatching::regulateUm(const int iRap)
       double ed_temp = DataTable->GetEd(iRap,i,j);
       if(ed_temp*1e10 < ed_max)  //rule for regulation
       {
-        for(int k=0;k<3;k++)
-          DataTable->SetUm(iRap, i, j, k, 1.);
+        DataTable->SetUm(iRap, i, j, 0, 1.);   //gamma=1
+        for(int k=1;k<3;k++)
+          DataTable->SetUm(iRap, i, j, k, 0.);
       }
     }
   } //<-> for i=0:Maxx
@@ -704,9 +705,9 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-//         if(i==116 && j==93)  //debug
-//         Diagnostic(iy, i, j);
-      }
+      //   if(i==116 && j==93)  //debug
+      //   Diagnostic(iy, i, j);
+      // }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;
 
@@ -1424,17 +1425,21 @@ void LdMatching::OutputTable_ed(const char *filename, const int iRap)
   ofstream of;
   of.open(filename, std::ios_base::out);
 
-  of<<"% Energy Density profile for x=(" << Xmin <<", "<<Xmax
-                                         << Ymin <<", "<<Ymax
-                                         <<"Rapidity "<<rapMin+ iRap* nRap
+  of<<"% Energy Density profile for x=(" << Xmin <<", "<<Xmax <<") "
+                                 <<"y=(" << Ymin <<", "<<Ymax <<") "
+                                         <<"Rapidity: "<<rapMin+ iRap* nRap
                                          << endl;                                   
   for(int i=0;i<Maxx;i++)      
   {
     for(int j=0;j<Maxy;j++)
-    of  << setprecision(12) << setw(22) << DataTable->GetEd(iRap, i, j);  //need revise
+    { 
+      of << scientific << setprecision(10) << setw(16) << DataTable->GetEd(iRap, i, j);  //need revise
+      if(i==116 && j==93)  //debug
+        cout << scientific << setprecision(10) << setw(16) << DataTable->GetEd(iRap, i, j);
+    }
     of  << endl;
   }
-
+  cout << setprecision(12) << setw(22) << DataTable->GetEd(iRap, 116, 93) << endl;
   cout<<"Energy density table has been printed out!"<<endl;
   of.close();
 }
@@ -1482,7 +1487,7 @@ void LdMatching::Output_picontract_comp(const char *filename, const int iRap)
   of.close();
 }
 
-void LdMatching::OutputTmnTable(const char *filename,const int iRap)
+void LdMatching::OutputTmnTable(const char *filename,const int iRap, const int mu, const int nu)
 {
   ofstream of;
   of.open(filename, std::ios_base::out);
@@ -1492,7 +1497,7 @@ void LdMatching::OutputTmnTable(const char *filename,const int iRap)
       {
          for(int j=0;j<Maxy;j++)
             {
-              of <<setprecision(12) << setw(22)<<DataTable->GetTmn(iRap, i, j, 0, 0);
+              of <<setprecision(12) << setw(22)<<DataTable->GetTmn(iRap, i, j, mu, nu);
 //                  <<setprecision(12) << setw(22)<<T01[iRap][i][j]
 //                  <<setprecision(12) << setw(22)<<T02[iRap][i][j]
 //                  <<setprecision(12) << setw(22)<<T11[iRap][i][j]
