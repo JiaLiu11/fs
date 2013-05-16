@@ -397,8 +397,9 @@ void LdMatching::regulateUm(const int iRap)
       double ed_temp = DataTable->GetEd(iRap,i,j);
       if(ed_temp*1e10 < ed_max)  //rule for regulation
       {
-        for(int k=0;k<3;k++)
-          DataTable->SetUm(iRap, i, j, k, 1.);
+        DataTable->SetUm(iRap, i, j, 0, 1.);
+        for(int k=1;k<3;k++)
+          DataTable->SetUm(iRap, i, j, k, 0.);
       }
     }
   } //<-> for i=0:Maxx
@@ -699,9 +700,9 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-        if(i==116 && j==93)  //debug
-        Diagnostic(iy, i, j);
-      }
+      //   if(i==85 && j==98)  //debug
+      //   Diagnostic(iy, i, j);
+      // }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;
   OutputTables_Pimn(0);
