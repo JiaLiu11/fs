@@ -92,8 +92,8 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
   Tauf = tauf;
   Dtau = dtau;
   int maxT = (int)((Tauf-Taui)/Dtau+0.1)+1;
-  cout << maxT << endl;
-  for(int t_i=0; t_i < maxT; t_i++)
+
+  for(int t_i=1; t_i < maxT; t_i++)
   {
     double tau0 = Taui;
     double tau1 = tau0 + t_i * Dtau;
@@ -215,6 +215,19 @@ void LdMatching::CalTmunu(const int iRap, double delta_tau)
   for(int i=0;i<Maxx;i++)  
     for(int j=0;j<Maxy;j++)  //loop over the transverse plane
     {
+      // if (i==85 && j==98)
+      //   {
+      //     ofstream dist_phi;
+      //     dist_phi.open("point_dist.dat",std::ios_base::out);
+
+      //     for(int iphi=0;iphi<order;iphi++)
+      //       dist_phi << setprecision(10) << setw(16) << xphip[iphi]
+      //            << setprecision(10) << setw(16)
+      //            << Streaming->GetDensity(iRap, i, j, xphip[iphi])
+      //            << endl;
+      //     dist_phi.close();
+      //   }
+
       for(int iphi=0;iphi<order;iphi++)  //loop over Gaussian points for phi
       {
         T00i=0,T01i=0,T02i=0,T11i=0,T12i=0,T22i=0;
@@ -263,7 +276,7 @@ void LdMatching::Matching_eig(const int nRap)
   gsl_complex v0;
   double factor;
   double Tmn_data[16];
-  double tolerance = 1e-18;  //regard quantities below this value are zero
+  double tolerance = 1e18;  //regard quantities below this value are zero
   int count=0;
 
   cout<<"Start Matching-----------------------"<<endl;
@@ -356,7 +369,9 @@ void LdMatching::Matching_eig(const int nRap)
            {
              gsl_complex eval_k 
                 = gsl_vector_complex_get (eval, k);
-
+                              //debug
+                if(i==63 && j==133)
+                  {cout << GSL_REAL(eval_k)<< endl; }
              if(GSL_REAL(eval_k)>0&&GSL_IMAG(eval_k)==0)   //select eigen-value
              {
               gsl_vector_complex_view  evec_k = 
@@ -369,7 +384,7 @@ void LdMatching::Matching_eig(const int nRap)
                 if(GSL_REAL(v0)<0)
                   factor=-factor;
 
-                if(GSL_REAL(eval_k)>tolerance)
+                if(GSL_REAL(eval_k)*tolerance>1)
                 {
                   DataTable->SetEd(iy, i, j, GSL_REAL(eval_k));
 
@@ -377,7 +392,7 @@ void LdMatching::Matching_eig(const int nRap)
                     DataTable->SetUm(iy, i, j, ivec, factor*GSL_REAL(gsl_vector_complex_get(&evec_k.vector, ivec)));
                 }
 
-                else if(GSL_REAL(eval_k)<=tolerance)
+                else if(GSL_REAL(eval_k)*tolerance<=1)
                 {
                   DataTable->SetEd(iy, i, j, 0);
 
@@ -710,8 +725,8 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-      // if(i==85 && j==98)  //debug
-      //   Diagnostic(iy, i, j);
+      if(i==63 && j==133)  //debug
+        Diagnostic(iy, i, j);
   }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;

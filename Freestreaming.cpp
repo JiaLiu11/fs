@@ -140,18 +140,18 @@ double FreeStrm::GetDensity(int iRap, int i, int j, double phip)
     double yfraction = jt-jti;
      // row interpolation + extrapolation first
     double A0 = interpCubic4Points(unshiftedTable[iRap][iti][jti], unshiftedTable[iRap][iti][jti+1], 
-      unshiftedTable[iRap][iti][jti+2], unshiftedTable[iRap][iti][jti+3], 1, yfraction);
+      unshiftedTable[iRap][iti][jti+2], unshiftedTable[iRap][iti][jti+3], 1, yfraction, true);
 
     double A1 = interpCubic4Points(unshiftedTable[iRap][iti+1][jti], unshiftedTable[iRap][iti+1][jti+1], 
-      unshiftedTable[iRap][iti+1][jti+2], unshiftedTable[iRap][iti+1][jti+3], 1, yfraction);
+      unshiftedTable[iRap][iti+1][jti+2], unshiftedTable[iRap][iti+1][jti+3], 1, yfraction, true);
 
     double A2 = interpCubic4Points(unshiftedTable[iRap][iti+2][jti], unshiftedTable[iRap][iti+2][jti+1], 
-      unshiftedTable[iRap][iti+2][jti+2], unshiftedTable[iRap][iti+2][jti+3], 1, yfraction);
+      unshiftedTable[iRap][iti+2][jti+2], unshiftedTable[iRap][iti+2][jti+3], 1, yfraction, true);
 
     double A3 = interpCubic4Points(unshiftedTable[iRap][iti+3][jti], unshiftedTable[iRap][iti+3][jti+1], 
-      unshiftedTable[iRap][iti+3][jti+2], unshiftedTable[iRap][iti+3][jti+3], 1, yfraction);
+      unshiftedTable[iRap][iti+3][jti+2], unshiftedTable[iRap][iti+3][jti+3], 1, yfraction, true);
     
-    return interpCubic4Points(A0,A1,A2,A3,1, xfraction);
+    return interpCubic4Points(A0,A1,A2,A3,1, xfraction, true);
 
     //revised in Mar.18, 2013
     //switch to linear interpolation since:
