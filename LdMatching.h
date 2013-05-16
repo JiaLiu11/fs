@@ -36,7 +36,7 @@ private:
 	int    nRap;
 	double rapMin, rapMax;
 	int    Maxx, Maxy;
-	double Taui, Tauf, Dtau;
+	double Taui, Tauf, Dtau, delta_tau;
 	int EOS_type;
 	EOS eos;
 
