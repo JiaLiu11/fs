@@ -368,10 +368,10 @@ void LdMatching::Matching_eig(const int nRap)
   regulateUm();
 
   //prepare file name
-  // ostringstream filename_stream;
-  // filename_stream.str("");
-  // filename_stream << "data/ed_profile_kln_tauf_" << Tauf << ".dat";
-  // OutputTable_ed(filename_stream.str().c_str(), 0);  
+  ostringstream filename_stream;
+  filename_stream.str("");
+  filename_stream << "data/ed_profile_kln_tauf_" << Tauf << ".dat";
+  OutputTable_ed(filename_stream.str().c_str(), 0);  
 }
 
 
@@ -699,8 +699,8 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-//         if(i==116 && j==93)  //debug
-//         Diagnostic(iy, i, j);
+        if(i==116 && j==93)  //debug
+        Diagnostic(iy, i, j);
       }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;

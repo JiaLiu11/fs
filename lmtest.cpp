@@ -57,17 +57,16 @@ int main()
             // Matching->Test_piSq_part();
             // Matching->CalPiSquare();
 
-            // ostringstream filename_stream_ux;
-            // filename_stream_ux.str("");
-            // filename_stream_ux << "data/ux_profile_kln_tauf_" << tau1 << ".dat";
-            // ostringstream filename_stream_uy;
-            // filename_stream_uy.str("");
-            // filename_stream_uy << "data/uy_profile_kln_tauf_" << tau1 << ".dat";
-            // Matching->OutputTable_ux(filename_stream_ux.str().c_str());
-            // Matching->OutputTable_uy(filename_stream_uy.str().c_str());
+            ostringstream filename_stream_ux;
+            filename_stream_ux.str("");
+            filename_stream_ux << "data/ux_profile_kln_tauf_" << tau1 << ".dat";
+            ostringstream filename_stream_uy;
+            filename_stream_uy.str("");
+            filename_stream_uy << "data/uy_profile_kln_tauf_" << tau1 << ".dat";
+            Matching->OutputTable_ux(filename_stream_ux.str().c_str());
+            Matching->OutputTable_uy(filename_stream_uy.str().c_str());
 
-    // //         Matching->OutputTable_Bulkpi("data/bulk_pi.dat");
-    // //         Matching->OutputTmnTable("data/T00_kln.dat");
+            Matching->OutputTable_BulkPi("data/bulk_pi.dat");
             epx_of << setw(8)  << setprecision(5) << order
                    << setw(12) << setprecision(5) << tau1
                    << setw(20) << setprecision(10)<< Matching->getEpx(2)<<endl;
