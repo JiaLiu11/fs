@@ -92,8 +92,8 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
   Tauf = tauf;
   Dtau = dtau;
   int maxT = (int)((Tauf-Taui)/Dtau+0.1)+1;
-
-  for(int t_i=1; t_i < maxT; t_i++)
+  cout << maxT << endl;
+  for(int t_i=0; t_i < maxT; t_i++)
   {
     double tau0 = Taui;
     double tau1 = tau0 + t_i * Dtau;
@@ -582,10 +582,15 @@ void LdMatching::CalBulkVis(const int nRap)
               - 2.*u1i*u2i*T12i  - 2.*u1i*u3i*T13i   -2.*u2i*u3i*T23i);            
         result = -1./3.*tr- DataTable->GetPres(iy, i, j);
         
-       //  if(i==116 && j==93)  //debug
-       //  cout << "bulk pi trace" << tr << endl
-       //       << "bulk pi pressure" << DataTable->GetPres(iy, i, j) << endl
-						 // << "bulk pi result" << result << endl;
+       //  if(i==85 && j==98)  //debug
+       //  {
+       //    cout << "bulk pi trace=" << tr << endl
+       //       << "first line="<< - (1.+u1i*u1i)*T11i -(1.+u2i*u2i)*T22i << endl
+       //       << "umu = " << u0i << " " << " " << u1i << " " << u2i << " " << u3i << endl
+       //       << "Pressure" << DataTable->GetPres(iy, i, j) << endl
+						 // << "Bulk pi result" << result << endl;
+       //    Diagnostic(0, i, j);
+       //  }
 //         if(i==57&&j==129) 
 // 				if(result >0.1&&DataTable->GetPres(iy, i, j)>1)  //debugging
 //         {
@@ -705,8 +710,8 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-      if(i==85 && j==98)  //debug
-        Diagnostic(iy, i, j);
+      // if(i==85 && j==98)  //debug
+      //   Diagnostic(iy, i, j);
   }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;
