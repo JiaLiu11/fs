@@ -39,26 +39,27 @@ private:
 	double Taui, Tauf, Dtau, delta_tau;
 	int EOS_type;
 	EOS eos;
+    bool outputData;
 
     void findCM_ed(const int iRap = 0);  //find the center of the profile
     //A general function to shift energy density table to a new center (x0, y0) and/or rotate phi angle clockwisely
     double getShiftedProfile(double ***data, int i, int j, double x0, double y0, 
         double phi = 0, bool limit=false, const int iRap=0); 
-    void regulateUm(const int iRap=0); //regulate u^\mu, set it to 1 in dilute region
+    void regulateDiluteRegion(const int iRap=0); //regulate u^\mu, set it to 1 in dilute region
 
 
 public:
 	LdMatching(double xmax, double ymax, double dx0,double dy0,
 		    int ny, double rapmin, double rapmax,
-            int iEOS);
+            int iEOS, bool outputdata);
 	~LdMatching();
 	void echo();
 	void Diagnostic(int iRap, int i, int j);
     void MultiMatching(string filename, double taui, double tauf, double dtau);
 
 	void ReadTable(string filename);
-    void CalTmunu(const int iRap, double delta_tau); 
-    void Matching_eig(const int nRap);
+    void CalTmunu(const int iRap); 
+    void Matching_eig(const int nrap=1);
     //useful routines for matrix manipulations
     void Lower_matrix_single(gsl_matrix *dest, gsl_matrix *src);
     void Lower_matrix_double(gsl_matrix *dest, gsl_matrix *src);  //give g_ma * S^ab * g_bn
@@ -66,17 +67,17 @@ public:
 
     double GetPressure(double edens);
 
-    void CalBulkVis(const int nRap=1);
-    void CalShearVis(const int nRap=1);
-    void CalPresTable(const int nRap=1);
+    void CalBulkVis(const int nrap=1);
+    void CalShearVis(const int nrap=1);
+    void CalPresTable(const int nrap=1);
     void CalVis2Ideal_Ratio(const int iRap=0);
-    void GenerateSdTable(const int nRap = 1);
+    void GenerateSdTable(const int nrap = 1);
     double getEpx(int n, const int iRap = 0);         //calculate eccentricity in the free-streaming stage
 
     // void OutputTable(const char *filename, const int iRap);
     void OutputTable_ux(const char *filename, const int iRap=0);
     void OutputTable_uy(const char *filename, const int iRap=0);
-    void OutputTable_uz(const char *filename, const int nRap=1);
+    void OutputTable_uz(const char *filename, const int iRap=1);
     void Output4colTable_ed(const char *filename, const int iRap=0);
 
     //for debugging
@@ -92,7 +93,7 @@ public:
     void  Output_picontract_comp(const char *filename, const int iRap=0);
     void  OutputTables_Pimn(const int iRap=0);
 
-    double getEpx_test(const int iRap=0);
+    double getEpx_test(const int irap=1);
 
 };
 

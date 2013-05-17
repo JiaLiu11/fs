@@ -109,7 +109,7 @@ int gauss_quadrature_standard(int order, int kind, double alpha, double beta, do
 //  Compute the Gauss quadrature formula for default values of A and B.
 //
   cdgqf (order, kind, alpha, beta, x, w);
-
+  if(a||b) cout << "";  //skip the unused variables warning when compiling
   return 0;
 }
 
@@ -1241,7 +1241,7 @@ void scqf ( int nt, double t[], int mlt[], double wts[], int nwts, int ndx[],
   double slp;
   double temp;
   double tmp;
-
+  if(nwts) cout << "";  //skip the unused variable warning
   temp = r8_epsilon ( );
 
   parchk ( kind, 1, alpha, beta );

@@ -11,8 +11,8 @@ using namespace std;
 
 int main()
 {
-  double tau_min=0.0, dtau=1.2;
-  double tau_max=1.2;
+  double tau_min=0.0, dtau=0.02;
+  double tau_max=1.0;
   int nevents=1;
 
   //Timing the current run
@@ -30,7 +30,10 @@ int main()
                     << event_num  <<"_block.dat";
 
     LdMatching *Matching;
-    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 1);
+    //LdMatching(double xmax, double ymax, double dx0,double dy0,
+        // int ny, double rapmin, double rapmax,
+        //     int iEOS, bool outputdata)
+    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 1, false);
     Matching->MultiMatching(filename_stream.str(), 
         tau_min, tau_max, dtau);
     delete Matching;

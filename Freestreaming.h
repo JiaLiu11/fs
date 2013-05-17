@@ -36,7 +36,7 @@ protected:
 	int    nRap;
 	double rapMin, rapMax;
 	int    Maxx, Maxy;
-	double Taui, Tauf, Phip;
+	double Taui, Tauf;
 	double PTmin, dpt, PTmax, MaxPT;
 	double Xcm, Ycm;    //center of the energy density profile  
 
@@ -53,7 +53,7 @@ public:
 	void dumpBlockTable(const char *filename, double ***data, const int iy);
 
 	void CreateDataTable(const char *filename, const int iy=0); //testing
-	double GaussProfile(const int iy, int i, int j, int ipt);  		//generating test profile
+	double GaussProfile(int irap, int i, int j, int ipt);  		//generating test profile
 	double BoxProfile(const int iRap, int i, int j, int ipt);
 	
 	double getEpx(int n, const int iRap=0);    //calculate eccentricity in the free-streaming stage
