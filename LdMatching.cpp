@@ -415,9 +415,11 @@ void LdMatching::Matching_eig(const int nrap)
                 // count++;
               }
              }
-
              else continue;
            }//for k=0;k<4;k++
+      gsl_vector_complex_free(eval);
+      gsl_matrix_complex_free(evec);
+
       }//for j=0:Maxy
   //cout<<"Matching Complete!"<<endl;
 

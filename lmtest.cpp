@@ -11,9 +11,9 @@ using namespace std;
 
 int main()
 {
-  double tau_min=0.0, dtau=1.2;
-  double tau_max=1.2;
-  int nevents=1;
+  double tau_min=0.0, dtau=0.1;
+  double tau_max=3.;
+  int nevents=20;
 
   //Timing the current run
   time_t start, end;
