@@ -9,11 +9,18 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
-  double tau_min=0.0, dtau=0.1;
+  if(argc != 2)  //check if there is only one argument
+  {
+    cout << "Usage: " << argv[0] << " <total events number>" << endl;
+    cout << "Try again!" << endl;
+    exit(-1); 
+  }
+
+  int nevents=atoi(argv[1]);  //read in events # from command-line
+  double tau_min=0.0, dtau=3.;
   double tau_max=3.;
-  int nevents=20;
 
   //Timing the current run
   time_t start, end;
