@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     //LdMatching(double xmax, double ymax, double dx0,double dy0,
         // int ny, double rapmin, double rapmax,
         //     int iEOS, bool outputdata)
-    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 2, true);
+    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 1, true);
     Matching->MultiMatching(filename_stream.str(), 
         tau_min, tau_max, dtau);
     delete Matching;

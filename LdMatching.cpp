@@ -362,7 +362,7 @@ void LdMatching::Matching_eig(const int nrap)
              gsl_complex eval_k 
                 = gsl_vector_complex_get (eval, k);
              // //debug, output 
-             // if(i==88 && j==186)
+             // if(i==85 && j==98)
              // {
              //   cout << "eigen value is:" << endl;
              //   cout << GSL_REAL(eval_k) << "+ " << GSL_IMAG(eval_k)<< "i" << endl;
@@ -434,7 +434,7 @@ void LdMatching::Matching_eig(const int nrap)
   {
     ostringstream filename_stream;
     filename_stream.str("");
-    filename_stream << "data/ed_profile_kln_tauf_" << Tauf << ".dat";
+    filename_stream << "data/ed_profile_kln_tauf_" << Taui+delta_tau << ".dat";
     OutputTable_ed(filename_stream.str().c_str(), 0);  
   }
 }
@@ -462,7 +462,7 @@ void LdMatching::regulateDiluteRegion(const int iRap)
       double ed_temp = DataTable->GetEd(iRap,i,j);
       if(ed_temp*1e10 < ed_max)  //rule for regulation
       {
-        DataTable->SetEd(iRap, i, j, 0.);
+        DataTable->SetEd(iRap, i, j, 0.); 
         DataTable->SetUm(iRap, i, j, 0, 1.);   //gamma=1, u1=u2=0
         for(int k=1;k<3;k++)
           DataTable->SetUm(iRap, i, j, k, 0.);
@@ -586,12 +586,12 @@ void LdMatching::CalBulkVis(const int nrap)
       for(int j=0;j<Maxy;j++)
       {
         //energy density equals zero, thi points in dilute region, thus not important, debug
-        // if(DataTable->GetEd(iy, i, j)==0)
-        // {
-        //   result = 0;
-        //   DataTable->SetBulk_Pi(iy, i, j, result);
-        //   continue;
-        // }
+        if(DataTable->GetEd(iy, i, j)==0&&EOS_type==1)  //ideal gas
+        {
+          result = 0;
+          DataTable->SetBulk_Pi(iy, i, j, result);
+          continue;
+        }
 
         tr=0;
         T00i = DataTable->GetTmn(iy, i, j, 0, 0);
@@ -719,7 +719,7 @@ void LdMatching::CalShearVis(const int nrap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-      // if(i==88 && j==186)  //debug
+      // if(i==85 && j==98)  //debug
       //   Diagnostic(iy, i, j);
   }
   logfile.close();

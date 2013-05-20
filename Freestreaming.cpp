@@ -151,7 +151,7 @@ double FreeStrm::GetDensity(int iRap, int i, int j, double phip)
     double A3 = interpCubic4Points(unshiftedTable[iRap][iti+3][jti], unshiftedTable[iRap][iti+3][jti+1], 
       unshiftedTable[iRap][iti+3][jti+2], unshiftedTable[iRap][iti+3][jti+3], 1, yfraction);
     
-    return interpCubic4Points(A0,A1,A2,A3,1, xfraction, true);  //set this to true to avoid 
+    return interpCubic4Points(A0,A1,A2,A3,1, xfraction,true);  //set this to true to avoid 
                                                                 //interpolate to negative value
 
     //revised in Mar.18, 2013
@@ -159,22 +159,22 @@ double FreeStrm::GetDensity(int iRap, int i, int j, double phip)
     //1. cubic interpolation assumes smooth function, which is unknown for fKLN output
     //2. negative result is given by cubic method
     //interp on boundary
-//         if (jti<0) jti=0;
-//         if (jti>=Maxy-2) 
-//           {
-//             jti=Maxy-2; // need 2 points
-//             // cout<<"out of y boundary"<<endl;
-//           }
-// 
-//         if (iti<0) iti=0;       
-//         if (iti>=Maxx-2) 
-//           { 
-//             iti=Maxx-2; // need 2 points
-//            // cout<<"out of x boundary"<<endl;
-//           }
-//  	return Bilinear2dInterp(iti, jti, 1, 1, densityTable[iRap][iti][jti], 
-//                    densityTable[iRap][iti][jti+1], densityTable[iRap][iti+1][jti+1], 
-//                    densityTable[iRap][iti+1][jti]);
+  //       if (jti<0) jti=0;
+  //       if (jti>=Maxy-2) 
+  //         {
+  //           jti=Maxy-2; // need 2 points
+  //           // cout<<"out of y boundary"<<endl;
+  //         }
+
+  //       if (iti<0) iti=0;       
+  //       if (iti>=Maxx-2) 
+  //         { 
+  //           iti=Maxx-2; // need 2 points
+  //          // cout<<"out of x boundary"<<endl;
+  //         }
+ 	// return Bilinear2dInterp(iti, jti, 1, 1, unshiftedTable[iRap][iti][jti], 
+  //                  unshiftedTable[iRap][iti][jti+1], unshiftedTable[iRap][iti+1][jti+1], 
+  //                  unshiftedTable[iRap][iti+1][jti]);
     }
 }
 
