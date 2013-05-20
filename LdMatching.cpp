@@ -700,9 +700,9 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-      //   if(i==85 && j==98)  //debug
-      //   Diagnostic(iy, i, j);
-      // }
+        if(i==85 && j==98)  //debug
+        Diagnostic(iy, i, j);
+    }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;
   OutputTables_Pimn(0);
