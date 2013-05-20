@@ -40,13 +40,12 @@ LdMatching::LdMatching(double xmax, double ymax, double ptmin, double ptmax, dou
     Ycm = 0.;
     edMax = -1.;
 
-    echo();  //output basic information of the current run
-
     Streaming=new FreeStrm(Xmax, Ymax, PTmin, PTmax, dx, dy,
         dpt, nRap, rapMin, rapMax, Taui, Tauf);
     DataTable=new CellData(Xmax, Ymax, dx, dy, nRap, rapMin, rapMax);
 
     EOS_type = iEOS;
+    echo();  //output basic information of the current run
     if(EOS_type==2)
     eos.loadEOSFromFile((char*)"s95p-PCE/EOS_converted.dat", (char*)"s95p-PCE/coeff.dat");  //load S95 EOS table
       
@@ -221,7 +220,7 @@ void LdMatching::CalTmunu(const int iRap)
 
 void LdMatching::Matching_eig(const int nRap)
 {
-  gsl_complex v0;
+  gsl_complex v0, vec_v;
   double factor;
   double Tmn_data[16];
   double tolerance = 1e-18;  //regard quantities below this value are zero
@@ -317,7 +316,21 @@ void LdMatching::Matching_eig(const int nRap)
            {
              gsl_complex eval_k 
                 = gsl_vector_complex_get (eval, k);
-
+             // //debug, output 
+             // if(i==85 && j==98)
+             // {
+             //   cout << "eigen value is:" << endl;
+             //   cout << GSL_REAL(eval_k) << "+ " << GSL_IMAG(eval_k)<< "i" << endl;
+             //   gsl_vector_complex_view  vec_test = 
+             //       gsl_matrix_complex_column (evec, k);
+             //   cout << "eigen vector is:" << endl;
+             //   for(int idx0=0;idx0<4;idx0++)
+             //   {
+             //     vec_v= gsl_vector_complex_get(&vec_test.vector, idx0);  
+             //     cout <<  GSL_REAL(vec_v) << "+ " << GSL_IMAG(vec_v) << "i  ";                   
+             //   }
+             //   cout << endl << endl;
+             //  }
              if(GSL_REAL(eval_k)>0&&GSL_IMAG(eval_k)==0)   //select eigen-value
              {
               gsl_vector_complex_view  evec_k = 
@@ -700,8 +713,8 @@ void LdMatching::CalShearVis(const int nRap)
             // cout<<DataTable->GetPi_mn(iy, i, j, ir, ic)<<endl;
           }
 
-        if(i==85 && j==98)  //debug
-        Diagnostic(iy, i, j);
+        // if(i==85 && j==98)  //debug
+        // Diagnostic(iy, i, j);
     }
   logfile.close();
   cout<<"Shear viscosity table Pi_mu nu complete!"<<endl<<endl;

@@ -16,7 +16,7 @@ int main()
 // 		    double dpt, int nrap, double rmin, double rmax, int iEOS, string filename);
 
 //----------------resume after debug    
-    double  dtau=1.2;
+    double  dtau=0.2;
     double tau0, tau1;
     int norder=1;
     
@@ -45,12 +45,12 @@ int main()
             tau1=tau0+i*dtau;
 
             Matching= new LdMatching(13.0, 13.0, 0.1, 12, 0.1, 0.1,
-                    0.1, 1, 0.0, 0.0, tau0, tau1, 1, filename_stream.str());
+                    0.1, 1, 0.0, 0.0, tau0, tau1, 2, filename_stream.str());
             Matching->CalTmunu(0);
             Matching->Matching_eig(1);
         
             Matching->CalPresTable();  //only can be done if ed table is complete
-    //        Matching->GenerateSdTable(); //only can be done if ed table is complete
+           Matching->GenerateSdTable(); //only can be done if ed table is complete
             Matching->CalBulkVis();
             Matching->CalShearVis();
     //         Matching->CalVis2Ideal_Ratio();
@@ -65,6 +65,7 @@ int main()
             filename_stream_uy << "data/uy_profile_kln_tauf_" << tau1 << ".dat";
             Matching->OutputTable_ux(filename_stream_ux.str().c_str());
             Matching->OutputTable_uy(filename_stream_uy.str().c_str());
+            Matching->OutputTable_Sd("data/sd_profile.dat");
 
             Matching->OutputTable_BulkPi("data/bulk_pi.dat");
             epx_of << setw(8)  << setprecision(5) << order
