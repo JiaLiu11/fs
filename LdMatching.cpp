@@ -32,13 +32,13 @@ LdMatching::LdMatching(double xmax, double ymax, double dx0,double dy0,
   Ycm = 0.;
   edMax = -1.;
   dNd2rdyTable = 0;
-  echo();  //output basic information of the current run
 
   EOS_type = iEOS;
   if(EOS_type==2)
   eos.loadEOSFromFile((char*)"s95p-PCE/EOS_converted.dat", (char*)"s95p-PCE/coeff.dat");  //load S95 EOS table
   
   outputData=outputdata;  //output all data table or just print out eccentricities
+  echo();  //output basic information of the current run
 // // Read from streamed profile
 //     Streaming->CreateDataTable("GaussianProfile.dat"); 
 }
@@ -361,7 +361,7 @@ void LdMatching::Matching_eig(const int nrap)
            {
              gsl_complex eval_k 
                 = gsl_vector_complex_get (eval, k);
-             // // //debug, output 
+             // //debug, output 
              // if(i==88 && j==186)
              // {
              //   cout << "eigen value is:" << endl;
@@ -426,7 +426,7 @@ void LdMatching::Matching_eig(const int nrap)
   //find the weighted center of the energy density profile
   findCM_ed();
 
-  //regulate ed and u^\mu in the dilute region
+  //regulate ed and u^\mu in the dilute region, debug
   regulateDiluteRegion();
 
   //prepare file name
@@ -585,13 +585,13 @@ void LdMatching::CalBulkVis(const int nrap)
     for(int i=0;i<Maxx;i++)
       for(int j=0;j<Maxy;j++)
       {
-        //energy density equals zero, thi points in dilute region, thus not important
-        if(DataTable->GetEd(iy, i, j)==0)
-        {
-          result = 0;
-          DataTable->SetBulk_Pi(iy, i, j, result);
-          continue;
-        }
+        //energy density equals zero, thi points in dilute region, thus not important, debug
+        // if(DataTable->GetEd(iy, i, j)==0)
+        // {
+        //   result = 0;
+        //   DataTable->SetBulk_Pi(iy, i, j, result);
+        //   continue;
+        // }
 
         tr=0;
         T00i = DataTable->GetTmn(iy, i, j, 0, 0);
@@ -614,7 +614,7 @@ void LdMatching::CalBulkVis(const int nrap)
               + 2.*u0i*u1i*T01i + 2.*u0i*u2i*T02i   +2.*u0i*u3i*T03i
               - 2.*u1i*u2i*T12i  - 2.*u1i*u3i*T13i   -2.*u2i*u3i*T23i); 
         result = -1./3.*tr- DataTable->GetPres(iy, i, j);
-        
+                
         if(fabs(result)<tolerance) //safty cut
           result = 0;
 

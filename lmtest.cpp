@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
   }
 
   int nevents=atoi(argv[1]);  //read in events # from command-line
-  double tau_min=0.0, dtau=3.;
-  double tau_max=3.;
+  double tau_min=0.0, dtau=1.2;
+  double tau_max=1.2;
 
   //Timing the current run
   time_t start, end;
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   start = clock();
 
   //processing events
-  for(int event_num=1;event_num<=nevents;event_num++)
+  for(int event_num=nevents;event_num<=nevents;event_num++)
   {
     //prepare readin filename
     ostringstream filename_stream;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     //LdMatching(double xmax, double ymax, double dx0,double dy0,
         // int ny, double rapmin, double rapmax,
         //     int iEOS, bool outputdata)
-    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 1, false);
+    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 2, true);
     Matching->MultiMatching(filename_stream.str(), 
         tau_min, tau_max, dtau);
     delete Matching;
