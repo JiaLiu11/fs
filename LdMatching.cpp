@@ -12,7 +12,7 @@ using namespace std;
 
 LdMatching::LdMatching(double xmax, double ymax, double dx0,double dy0,
         int ny, double rapmin, double rapmax,
-            int iEOS, bool outputdata)
+            int iEOS, bool outputdata, string result_dir)
 {
   Xmax=xmax;
   Ymax=ymax;
@@ -38,6 +38,7 @@ LdMatching::LdMatching(double xmax, double ymax, double dx0,double dy0,
   eos.loadEOSFromFile((char*)"s95p-PCE/EOS_converted.dat", (char*)"s95p-PCE/coeff.dat");  //load S95 EOS table
   
   outputData=outputdata;  //output all data table or just print out eccentricities
+  Result_Dir = result_dir;
   echo();  //output basic information of the current run
 // // Read from streamed profile
 //     Streaming->CreateDataTable("GaussianProfile.dat"); 
@@ -76,7 +77,9 @@ void LdMatching::echo()
   {
     cout<<"EOS: S95p-PCE"<<endl;
   }
-  cout<<"output data table:" << outputData << endl << endl;
+  cout<<"output data table:" << outputData << endl;
+  if(outputData == true)
+    cout << "Final Data stored in folder" << Result_Dir << "/..." << endl;
 }
 
 
@@ -107,6 +110,12 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
     double tau1 = tau0 + t_i * Dtau;
     delta_tau = t_i*Dtau;
 
+    //prepare the folder for output profiles
+    ostringstream dst_folder_stream;
+    dst_folder_stream << Result_Dir << "/" << tau1;
+    Dst_Folder = dst_folder_stream.str();
+    system(("mkdir " + Dst_Folder).c_str());
+
     Streaming=new FreeStrm(Xmax, Ymax, dx, dy,
           nRap, rapMin, rapMax, tau0, tau1);
     Streaming->CopyTable(dNd2rdyTable);  //assign data table to FreeStrm class
@@ -127,10 +136,10 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
     {
       ostringstream filename_stream_ux;
       filename_stream_ux.str("");
-      filename_stream_ux << "data/ux_profile_kln_tauf_" << Taui+delta_tau << ".dat";
+      filename_stream_ux << Dst_Folder << "/ux_profile_kln_tauf_" << Taui+delta_tau << ".dat";
       ostringstream filename_stream_uy;
       filename_stream_uy.str("");
-      filename_stream_uy << "data/uy_profile_kln_tauf_" << Taui+delta_tau << ".dat";
+      filename_stream_uy << Dst_Folder << "/uy_profile_kln_tauf_" << Taui+delta_tau << ".dat";
       OutputTable_ux(filename_stream_ux.str().c_str());
       OutputTable_uy(filename_stream_uy.str().c_str());
     }
@@ -435,7 +444,7 @@ void LdMatching::Matching_eig(const int nrap)
   {
     ostringstream filename_stream;
     filename_stream.str("");
-    filename_stream << "data/ed_profile_kln_tauf_" << Taui+delta_tau << ".dat";
+    filename_stream << Dst_Folder <<"/ed_profile_kln_tauf_" << Taui+delta_tau << ".dat";
     OutputTable_ed(filename_stream.str().c_str(), 0);  
   }
 }
@@ -626,7 +635,7 @@ void LdMatching::CalBulkVis(const int nrap)
   {
     ostringstream filename_stream;
     filename_stream.str("");
-    filename_stream << "data/BulkPi_kln_tauf_" << Taui+delta_tau << ".dat";
+    filename_stream << Dst_Folder << "/BulkPi_kln_tauf_" << Taui+delta_tau << ".dat";
     OutputTable_BulkPi(filename_stream.str().c_str(), 0);      
   }
   //cout<<"Bulk viscosity table complete!"<<endl<<endl; 
@@ -1372,7 +1381,7 @@ void LdMatching::OutputTables_Pimn(const int iRap)
     for(int ipij=ipii;ipij<3;ipij++)
     {
       pi_tbl_stream.str("");
-      pi_tbl_stream << "data/Pi" << ipii << ipij
+      pi_tbl_stream << Dst_Folder <<"/Pi" << ipii << ipij
                     << "_kln_tauf_" << Taui+delta_tau
                     << ".dat" ;
       ofstream of;
@@ -1389,7 +1398,7 @@ void LdMatching::OutputTables_Pimn(const int iRap)
 
   //dump Pi33 table
   pi_tbl_stream.str(""); //clean filename for Pi33 table
-  pi_tbl_stream << "data/Pi" << 3 << 3
+  pi_tbl_stream << Dst_Folder << "/Pi" << 3 << 3
               << "_kln_tauf_" << Taui+delta_tau
               << ".dat" ;
   ofstream of;

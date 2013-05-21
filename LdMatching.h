@@ -11,7 +11,7 @@ pressure at z=0 plane. To accomplish all, an input of EOS is necessary.
 #include <sstream>
 #include <string>
 #include <cstring>
-#include "stdlib.h"
+#include <stdlib.h>
 #include "Freestreaming.h"
 #include "CellData.h"
 #include "EOS.h"
@@ -40,6 +40,7 @@ private:
 	int EOS_type;
 	EOS eos;
     bool outputData;
+    string Result_Dir, Dst_Folder;
 
     void findCM_ed(const int iRap = 0);  //find the center of the profile
     //A general function to shift energy density table to a new center (x0, y0) and/or rotate phi angle clockwisely
@@ -51,7 +52,7 @@ private:
 public:
 	LdMatching(double xmax, double ymax, double dx0,double dy0,
 		    int ny, double rapmin, double rapmax,
-            int iEOS, bool outputdata);
+            int iEOS, bool outputdata, string result_dir);
 	~LdMatching();
 	void echo();
 	void Diagnostic(int iRap, int i, int j);
