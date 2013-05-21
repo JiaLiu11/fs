@@ -80,6 +80,25 @@ void LdMatching::echo()
   cout<<"output data table:" << outputData << endl;
   if(outputData == true)
     cout << "Final Data stored in folder" << Result_Dir << "/..." << endl;
+
+  //save parameters in a file
+  ostringstream filename_stream;
+  filename_stream.str("");
+  filename_stream << Result_Dir <<"/parameters.dat";
+  ofstream of;
+  of.open(filename_stream.str().c_str(), std::ios_base::out);
+  of<<"Parameters for free-streaming and Landau matching:"<<endl
+    <<"x range: "<<Xmin<<", "<<Xmax<<"     "<<endl
+    <<"y range: "<<Ymin<<", "<<Ymax<<"     "<<endl
+    <<"Rapidity range: "<<rapMin<<", "<<rapMax<<"     "<<endl
+    <<"slicing: dx="<<dx<<", dy="<<dy<<endl;
+  if(EOS_type == 1)
+    of << "EOS: Ideal gas"<<endl;
+  else if(EOS_type == 2)
+  {
+    of<<"EOS: S95p-PCE"<<endl;
+  }
+  of.close();
 }
 
 
@@ -127,7 +146,8 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
     Matching_eig(1);   //Do the matching and output energy density profile
         
     CalPresTable();  //only can be done if ed table is ready
-    //  Matching->GenerateSdTable(); //only can be done if ed table is ready
+    if(EOS_type==2)
+      GenerateSdTable(); //only can be done if ed table is ready
     CalBulkVis();   //calculate Bulk Pi and output it
     CalShearVis();  //calculate shear Pi and output Pi tensor
 
@@ -563,6 +583,14 @@ void LdMatching::CalPresTable(const int nrap)
           DataTable->SetPres(iy, i, j, pres_temp);
         }
   }
+
+  if(outputData==true)
+  {
+    ostringstream filename_stream;
+    filename_stream.str("");
+    filename_stream << Dst_Folder << "/Pressure_kln_tauf_" << Taui+delta_tau << ".dat";
+    OutputTable_pressure(filename_stream.str().c_str(), 0);      
+  }
   //cout<<"Pressure table complete!----------------------------"<<endl<<endl;
 }
 
@@ -578,6 +606,14 @@ void LdMatching::GenerateSdTable(const int nrap)
         DataTable->SetSd(iy, i, j, sd_temp);
       }
 //  cout<<"Entropy density table generated!"<<endl;  
+        //prepare file name
+  if(outputData==true)
+  {
+    ostringstream filename_stream;
+    filename_stream.str("");
+    filename_stream << Dst_Folder <<"/sd_profile_kln_tauf_" << Taui+delta_tau << ".dat";
+    OutputTable_Sd(filename_stream.str().c_str(), 0);  
+  }
 }
 
 
@@ -1420,9 +1456,9 @@ void LdMatching::OutputTable_Sd(const char *filename, const int iRap)
   ofstream of;
   of.open(filename, std::ios_base::out);
 
-  of<<"% Entropy Density profile for x=(" << Xmin <<", "<<Xmax
-                                         << Ymin <<", "<<Ymax
-                                         <<"Rapidity "<<rapMin+ iRap* nRap<<endl;                                   
+  // of<<"% Entropy Density profile for x=(" << Xmin <<", "<<Xmax
+  //                                        << Ymin <<", "<<Ymax
+  //                                        <<"Rapidity "<<rapMin+ iRap* nRap<<endl;                                   
   for(int i=0;i<Maxx;i++)      
   {
     for(int j=0;j<Maxy;j++)
@@ -1440,10 +1476,10 @@ void LdMatching::OutputTable_ed(const char *filename, const int iRap)
   ofstream of;
   of.open(filename, std::ios_base::out);
 
-  of<<"% Energy Density profile for x=(" << Xmin <<", "<<Xmax <<") "
-                                 <<"y=(" << Ymin <<", "<<Ymax <<"), "
-                                         <<"Rapidity: "<<rapMin+ iRap* nRap
-                                         << endl;                          
+  // of<<"% Energy Density profile for x=(" << Xmin <<", "<<Xmax <<") "
+  //                                <<"y=(" << Ymin <<", "<<Ymax <<"), "
+  //                                        <<"Rapidity: "<<rapMin+ iRap* nRap
+  //                                        << endl;                          
   for(int i=0;i<Maxx;i++)      
   {
     for(int j=0;j<Maxy;j++)
@@ -1455,14 +1491,34 @@ void LdMatching::OutputTable_ed(const char *filename, const int iRap)
 }
 
 
+void LdMatching::OutputTable_pressure(const char *filename, const int iRap)
+{
+  ofstream of;
+  of.open(filename, std::ios_base::out);
+
+  // of<<"% Pressure profile for x=(" << Xmin <<", "<<Xmax
+  //                                        << Ymin <<", "<<Ymax
+  //                                        <<"Rapidity "<<rapMin+ iRap* nRap<<endl;                                   
+
+    for(int i=0;i<Maxx;i++)      
+    {
+      for(int j=0;j<Maxy;j++)
+        of  << setprecision(10) << setw(22) << DataTable->GetPres(iRap, i, j);  //need revise
+        of  << endl;
+    }
+
+  //cout<<"Pressure table has been printed out!"<<endl;
+  of.close(); 
+}
+
 void LdMatching::OutputTable_BulkPi(const char *filename, const int iRap)
 {
   ofstream of;
   of.open(filename, std::ios_base::out);
 
-  of<<"% Bulk viscosity profile for x=(" << Xmin <<", "<<Xmax
-                                         << Ymin <<", "<<Ymax
-                                         <<"Rapidity "<<rapMin+ iRap* nRap<<endl;                                   
+  // of<<"% Bulk viscosity profile for x=(" << Xmin <<", "<<Xmax
+  //                                        << Ymin <<", "<<Ymax
+  //                                        <<"Rapidity "<<rapMin+ iRap* nRap<<endl;                                   
 
     for(int i=0;i<Maxx;i++)      
     {
@@ -1482,10 +1538,10 @@ void LdMatching::Output_picontract_comp(const char *filename, const int iRap)
   ofstream of;
   of.open(filename, std::ios_base::out);
 
-  of<<"% Viscosity ratio profile for x=(" << Xmin <<", "<<Xmax
-                                         << Ymin <<", "<<Ymax
-                                         <<"Rapidity "<<rapMin+ iRap* nRap
-                                         <<"Matching time "<<Tauf-Taui<<" fm/c"<<endl;                                   
+  // of<<"% Viscosity ratio profile for x=(" << Xmin <<", "<<Xmax
+  //                                        << Ymin <<", "<<Ymax
+  //                                        <<"Rapidity "<<rapMin+ iRap* nRap
+  //                                        <<"Matching time "<<Tauf-Taui<<" fm/c"<<endl;                                   
 
     for(int i=0;i<Maxx;i++)      
     {

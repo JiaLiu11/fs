@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
   }
 
   int nevents=atoi(argv[1]);  //read in events # from command-line
-  double tau_min=0.0, dtau=0.6;
+  double tau_min=0.0, dtau=0.2;
   double tau_max=1.2;
 
   //Timing the current run
@@ -43,14 +43,14 @@ int main(int argc, char *argv[])
     result_dir_stream.str("");
     result_dir_stream << "./data/result/event_" << event_num;
     string result_directory = result_dir_stream.str();
-
+    system(("rm -rf " + result_directory).c_str());
     system(("mkdir " + result_directory).c_str());
 
     LdMatching *Matching;
     //LdMatching(double xmax, double ymax, double dx0,double dy0,
         // int ny, double rapmin, double rapmax,
-        //     int iEOS, bool outputdata)
-    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 1, true, result_directory);
+        //     int iEOS, bool outputdata, string result_location)
+    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 2, true, result_directory);
     Matching->MultiMatching(filename_stream.str(), 
         tau_min, tau_max, dtau);
     delete Matching;
