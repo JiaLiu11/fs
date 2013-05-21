@@ -256,22 +256,23 @@ void LdMatching::CalTmunu(const int iRap)
         DataTable->SetTmn(iRap ,i, j, 2, 2, T22i+DataTable->GetTmn(iRap,i,j,2,2));
       }
     } //<->for int i=0;i<Maxx;i++
-
-//fill in the symmetric part of T\mu\nu, and scale the Tmn table by Tau
+  //scale Tmn by the final time
+  double tauf_now = Taui + delta_tau;
+  //fill in the symmetric part of T\mu\nu, and scale the Tmn table by Tau
   for(int iy=0;iy<nRap;iy++)
     for(int i=0;i<Maxx;i++)
       for(int j=0;j<Maxy;j++)
       {
-        DataTable->SetTmn(iy ,i, j, 1, 0, DataTable->GetTmn(iy,i,j,0,1)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 2, 0, DataTable->GetTmn(iy,i,j,0,2)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 2, 1, DataTable->GetTmn(iy,i,j,1,2)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 1, 0, DataTable->GetTmn(iy,i,j,0,1)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 2, 0, DataTable->GetTmn(iy,i,j,0,2)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 2, 1, DataTable->GetTmn(iy,i,j,1,2)/tauf_now);
 
-        DataTable->SetTmn(iy ,i, j, 0, 0, DataTable->GetTmn(iy,i,j,0,0)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 0, 1, DataTable->GetTmn(iy,i,j,0,1)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 0, 2, DataTable->GetTmn(iy,i,j,0,2)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 1, 1, DataTable->GetTmn(iy,i,j,1,1)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/delta_tau);
-        DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/delta_tau);
+        DataTable->SetTmn(iy ,i, j, 0, 0, DataTable->GetTmn(iy,i,j,0,0)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 0, 1, DataTable->GetTmn(iy,i,j,0,1)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 0, 2, DataTable->GetTmn(iy,i,j,0,2)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 1, 1, DataTable->GetTmn(iy,i,j,1,1)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 1, 2, DataTable->GetTmn(iy,i,j,1,2)/tauf_now);
+        DataTable->SetTmn(iy ,i, j, 2, 2, DataTable->GetTmn(iy,i,j,2,2)/tauf_now);
       } 
   // OutputTmnTable("data/T00.dat", 0, 0, 0);  //debug
   //cout<<"Tmn table complete!"<<endl;
