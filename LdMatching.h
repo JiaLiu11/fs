@@ -84,6 +84,7 @@ public:
     void  OutputTable_ed(const char *filename, const int iRap);
     void  OutputTable_Sd(const char *filename, const int iRap=0);
     void  OutputTable_BulkPi(const char *filename, const int iRap=0);
+    void  OutputTable_Pressure(const char *filename, const int iRap=0);
 
     // void  CalPiSquare(const int iRap=0);
     // void  Test_piSq_part(const int iRap=0);

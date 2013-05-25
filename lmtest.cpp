@@ -16,7 +16,7 @@ int main()
 // 		    double dpt, int nrap, double rmin, double rmax, int iEOS, string filename);
 
 //----------------resume after debug    
-    double  dtau=0.2;
+    double  dtau=0.01;
     double tau0, tau1;
     int norder=1;
     
@@ -50,7 +50,7 @@ int main()
             Matching->Matching_eig(1);
         
             Matching->CalPresTable();  //only can be done if ed table is complete
-           Matching->GenerateSdTable(); //only can be done if ed table is complete
+            Matching->GenerateSdTable(); //only can be done if ed table is complete
             Matching->CalBulkVis();
             Matching->CalShearVis();
     //         Matching->CalVis2Ideal_Ratio();
@@ -66,6 +66,7 @@ int main()
             Matching->OutputTable_ux(filename_stream_ux.str().c_str());
             Matching->OutputTable_uy(filename_stream_uy.str().c_str());
             Matching->OutputTable_Sd("data/sd_profile.dat");
+            Matching->OutputTable_Pressure("data/Pressure_profile.dat");
 
             Matching->OutputTable_BulkPi("data/bulk_pi.dat");
             epx_of << setw(8)  << setprecision(5) << order

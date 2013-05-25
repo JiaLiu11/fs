@@ -1385,6 +1385,22 @@ void LdMatching::Output4colTable_visratio(const char *filename, const int iRap)
   of.close();
 }
 
+void  LdMatching::OutputTable_Pressure(const char *filename, const int iRap)
+{
+  ofstream of;
+  of.open(filename, std::ios_base::out);
+
+  for(int i=0;i<Maxx;i++)      
+  {
+    for(int j=0;j<Maxy;j++)
+    of << scientific << setprecision(10) << setw(20) << DataTable->GetPres(iRap,i,j);  
+    of << endl;
+  }
+  cout<<"Pressure has been printed out for time Delta_Tau= "<<Tauf-Taui<<" fm/c"<<endl;
+
+  of.close();
+}
+
 void LdMatching::OutputTables_Pimn(const int iRap)
 {
   cout <<"Start to dump Pi_mn table"<<endl;

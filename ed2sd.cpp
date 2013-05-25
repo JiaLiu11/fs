@@ -11,10 +11,10 @@ int main(void)
   int Maxx = 261;
   int Maxy = 261;
   ifstream readin;
-  readin.open("blockTable_ed.dat");
+  readin.open("InitialSd.dat");
 
   ofstream of;
-  of.open("blockTable_sd.dat",std::ios_base::out);
+  of.open("test_blockTable_ed.dat",std::ios_base::out);
 
   eos.loadEOSFromFile("s95p-PCE/EOS_converted.dat", "s95p-PCE/coeff.dat");  //load S95 EOS table
   double sd_temp = 0;
@@ -27,13 +27,14 @@ int main(void)
     {
       for(int j=0;j<Maxy;j++)
       {
-        readin>>ed_temp;
-        sd_temp=eos.sd(ed_temp); // Return the entropy density from the energy density ed0.
-        of<<setw(22)<<setprecision(10)<<sd_temp;
+        readin>>sd_temp;
+        ed_temp = eos.edFromSd(sd_temp);
+        //ed_temp=eos.sd(ed_temp); // Return the entropy density from the energy density ed0.
+        of<<setw(22)<<setprecision(10)<<ed_temp;
       }
       of<<endl;
     }
-  readin>>ed_temp;   //reach the end of the file
+  readin>>sd_temp;   //reach the end of the file
   cout<<"loop"<<endl;
   }
 
