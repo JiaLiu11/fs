@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
   }
 
   int nevents=atoi(argv[1]);  //read in events # from command-line
-  double tau_min=0.0, dtau=0.2;
-  double tau_max=1.2;
+  double tau_min=0.0, dtau=0.1;
+  double tau_max=0.1;
 
   //Timing the current run
   time_t start, end;

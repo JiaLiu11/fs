@@ -160,8 +160,11 @@ void LdMatching::MultiMatching(string filename, double taui, double tauf, double
       ostringstream filename_stream_uy;
       filename_stream_uy.str("");
       filename_stream_uy << Dst_Folder << "/uy_profile_kln_tauf_" << Taui+delta_tau << ".dat";
+      ostringstream filename_stream_Tmn;
+      filename_stream_Tmn << Dst_Folder << "/Tmn_profile_kln_tauf_" << Taui + delta_tau << ".dat";
       OutputTable_ux(filename_stream_ux.str().c_str());
       OutputTable_uy(filename_stream_uy.str().c_str());
+      OutputTmnTable(filename_stream_Tmn.str().c_str(), 0 , 0, 0);
     }
 
     of_epx << setw(8)  << setprecision(5) << tau0
@@ -247,19 +250,20 @@ void LdMatching::CalTmunu(const int iRap)
   //cout<<"Start to calculate T_mn matrix----------------------"<<endl;
 
   gauss_quadrature(order, kind, alpha, beta, phipmin, phipmax, xphip, wphi); 
-
   for(int i=0;i<Maxx;i++)  
     for(int j=0;j<Maxy;j++)  //loop over the transverse plane
     {
-      // if (i==85 && j==98)
+      //debug
+      // if (i==137 && j==113)
       //   {
       //     ofstream dist_phi;
-      //     dist_phi.open("point_dist.dat",std::ios_base::out);
+      //     dist_phi.open("data/I_value.dat",std::ios_base::out);
 
       //     for(int iphi=0;iphi<order;iphi++)
       //       dist_phi << setprecision(10) << setw(16) << xphip[iphi]
       //            << setprecision(10) << setw(16)
       //            << Streaming->GetDensity(iRap, i, j, xphip[iphi])
+      //            << setprecision(10) << setw(16) << wphi[iphi]
       //            << endl;
       //     dist_phi.close();
       //   }
