@@ -7,21 +7,29 @@
 #include "LdMatching.h"
 #include "Freestreaming.h"
 #include "gauss_quadrature.h"
+#include "ParameterReader.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-  if(argc != 2)  //check if there is only one argument
+  ParameterReader Params;
+  Params.readFromFile("LMParameters.dat");
+  Params.readFromArguments(argc, argv);
+  Params.echo();
+  //switch between run mode: one event or multiple events
+  int event_flag = Params.getVal("event_mode");
+  int nevents = Params.getVal("nevents");
+  int event_num;
+  if(event_flag <= 0)
   {
-    cout << "Usage: " << argv[0] << " <total events number>" << endl;
-    cout << "Try again!" << endl;
-    exit(-1); 
+    event_num = 1;
   }
-
-  int nevents=atoi(argv[1]);  //read in events # from command-line
-  double tau_min=0.0, dtau=0.1;
-  double tau_max=0.1;
+  else if(event_flag > 0)
+  {
+    event_num = event_flag;
+    nevents = event_flag;
+  }
 
   //Timing the current run
   time_t start, end;
@@ -29,7 +37,7 @@ int main(int argc, char *argv[])
   start = clock();
 
   //processing events
-  for(int event_num=nevents;event_num<=nevents;event_num++)
+  for( ;event_num<=nevents;event_num++)
   {
     //prepare readin filename for event-by-event eccentricity fluctuation
     ostringstream filename_stream;
@@ -47,12 +55,8 @@ int main(int argc, char *argv[])
     system(("mkdir " + result_directory).c_str());
 
     LdMatching *Matching;
-    //LdMatching(double xmax, double ymax, double dx0,double dy0,
-        // int ny, double rapmin, double rapmax,
-        //     int iEOS, bool outputdata, string result_location)
-    Matching = new LdMatching(13, 13, 0.1 , 0.1, 1, 0, 0, 2, true, result_directory);
-    Matching->MultiMatching(filename_stream.str(), 
-        tau_min, tau_max, dtau);
+    Matching = new LdMatching(&Params, result_directory);
+    Matching->MultiMatching(filename_stream.str());  //do the matching
     delete Matching;
   }
 

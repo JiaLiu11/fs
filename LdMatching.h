@@ -15,6 +15,7 @@ pressure at z=0 plane. To accomplish all, an input of EOS is necessary.
 #include "Freestreaming.h"
 #include "CellData.h"
 #include "EOS.h"
+#include "ParameterReader.h"
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_math.h>
@@ -29,6 +30,7 @@ class LdMatching
 private:	
     FreeStrm *Streaming;
     CellData *DataTable;
+    ParameterReader *lm_params;
     double*** dNd2rdyTable;
 	double Xmax,Ymax,Xmin,Ymin,dx,dy;
     double Xcm, Ycm;  //center of the energy density 
@@ -36,7 +38,7 @@ private:
 	int    nRap;
 	double rapMin, rapMax;
 	int    Maxx, Maxy;
-	double Taui, Tauf, Dtau, delta_tau;
+	double Tau0, Taui, Tauf, Dtau, delta_tau;
 	int EOS_type;
 	EOS eos;
     bool outputData;
@@ -50,13 +52,11 @@ private:
 
 
 public:
-	LdMatching(double xmax, double ymax, double dx0,double dy0,
-		    int ny, double rapmin, double rapmax,
-            int iEOS, bool outputdata, string result_dir);
+	LdMatching(ParameterReader *params_in, string result_dir);
 	~LdMatching();
 	void echo();
 	void Diagnostic(int iRap, int i, int j);
-    void MultiMatching(string filename, double taui, double tauf, double dtau);
+    void MultiMatching(string filename);
 
 	void ReadTable(string filename);
     void CalTmunu(const int iRap); 

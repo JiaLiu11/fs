@@ -28,7 +28,8 @@ lmtest.cpp \
 EOS.cpp \
 arsenal.cpp \
 mistools.cpp \
-gauss_quadrature.cpp 
+gauss_quadrature.cpp \
+ParameterReader.cpp
   
 OBJS= \
 LdMatching.o \
@@ -38,7 +39,8 @@ lmtest.o \
 EOS.o\
 arsenal.o \
 mistools.o \
-gauss_quadrature.o
+gauss_quadrature.o \
+ParameterReader.o
 
 HDRS= \
 CellData.h \
@@ -48,7 +50,8 @@ gauss_quadrature.h \
 EOS.h  \
 LdMatching.h \
 arsenal.h \
-mistools.h
+mistools.h \
+ParameterReader.h
 
 MAKEFILE= make_lm
 
@@ -56,7 +59,7 @@ COMMAND=  lm.e
  
 CC= g++
 CFLAGS= -O3
-WARNFLAGS= -Werror -Wall -W -Wshadow -fno-common
+WARNFLAGS= -Wall -W -Wshadow -fno-common
 MOREFLAGS= -ansi -pedantic -Wpointer-arith -Wcast-qual -Wcast-align \
            -Wwrite-strings -fshort-enums 
 LDFLAGS= -lgsl -lgslcblas 
@@ -86,6 +89,9 @@ mistools.o : mistools.cpp
 
 gauss_quadrature.o : gauss_quadrature.cpp
 	$(CC) $(CFLAGS) $(WARNFLAGS)  -c gauss_quadrature.cpp -o gauss_quadrature.o
+
+ParameterReader.o : ParameterReader.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c ParameterReader.cpp -o ParameterReader.o
 
 lmtest.o : lmtest.cpp
 	$(CC) $(CFLAGS) $(WARNFLAGS)  -c lmtest.cpp -o lmtest.o					
