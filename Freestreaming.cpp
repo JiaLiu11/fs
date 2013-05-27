@@ -35,7 +35,7 @@ FreeStrm::FreeStrm(double xmax, double ymax, double dx0,double dy0,
     Ycm = 0.;
     shiftedTable = 0;
     unshiftedTable = 0;
-  cout << "Free-streaming procedure Initialized!" << endl;
+//  cout << "Free-streaming procedure Initialized!" << endl;
 }
 
 
@@ -151,29 +151,30 @@ double FreeStrm::GetDensity(int iRap, int i, int j, double phip)
     double A3 = interpCubic4Points(unshiftedTable[iRap][iti+3][jti], unshiftedTable[iRap][iti+3][jti+1], 
       unshiftedTable[iRap][iti+3][jti+2], unshiftedTable[iRap][iti+3][jti+3], 1, yfraction);
     
-    return interpCubic4Points(A0,A1,A2,A3,1, xfraction);
+    return interpCubic4Points(A0,A1,A2,A3,1, xfraction,true);  //set this to true to avoid 
+                                                                //interpolate to negative value
 
     //revised in Mar.18, 2013
     //switch to linear interpolation since:
     //1. cubic interpolation assumes smooth function, which is unknown for fKLN output
     //2. negative result is given by cubic method
     //interp on boundary
-//         if (jti<0) jti=0;
-//         if (jti>=Maxy-2) 
-//           {
-//             jti=Maxy-2; // need 2 points
-//             // cout<<"out of y boundary"<<endl;
-//           }
-// 
-//         if (iti<0) iti=0;       
-//         if (iti>=Maxx-2) 
-//           { 
-//             iti=Maxx-2; // need 2 points
-//            // cout<<"out of x boundary"<<endl;
-//           }
-//  	return Bilinear2dInterp(iti, jti, 1, 1, densityTable[iRap][iti][jti], 
-//                    densityTable[iRap][iti][jti+1], densityTable[iRap][iti+1][jti+1], 
-//                    densityTable[iRap][iti+1][jti]);
+  //       if (jti<0) jti=0;
+  //       if (jti>=Maxy-2) 
+  //         {
+  //           jti=Maxy-2; // need 2 points
+  //           // cout<<"out of y boundary"<<endl;
+  //         }
+
+  //       if (iti<0) iti=0;       
+  //       if (iti>=Maxx-2) 
+  //         { 
+  //           iti=Maxx-2; // need 2 points
+  //          // cout<<"out of x boundary"<<endl;
+  //         }
+ 	// return Bilinear2dInterp(iti, jti, 1, 1, unshiftedTable[iRap][iti][jti], 
+  //                  unshiftedTable[iRap][iti][jti+1], unshiftedTable[iRap][iti+1][jti+1], 
+  //                  unshiftedTable[iRap][iti+1][jti]);
     }
 }
 
@@ -282,12 +283,14 @@ void FreeStrm::CreateDataTable(const char *filename, const int iRap)
 }
 
 
-double FreeStrm::GaussProfile(const int iRap, int i, int j, int ipt)
+double FreeStrm::GaussProfile(int iRap, int i, int j, int ipt)
 {
     double x=Xmin+i*dx;
     double y=Ymin+j*dy;
     double ptstep = PTmin + ipt*dpt;
+    double rap_factor = iRap;
 
+    rap_factor = 1.; //rapidity =0 now
     double fxy;
     // prefactor=1/(12.087747372898045e0), Gaussian normalization factor
 
@@ -305,6 +308,9 @@ double FreeStrm::BoxProfile(const int iRap, int i, int j, int ipt)
     double fxy;
     double prefactor=1/18.0;
 
+    double rap_factor = iRap;
+    rap_factor = 1.; //rapidity =0 now
+    
     fxy= prefactor*(stepfunc(x+3)-stepfunc(x-3))*(stepfunc(y+3)-stepfunc(y-3))*exp(-ptstep*ptstep);
 
     return fxy;

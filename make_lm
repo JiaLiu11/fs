@@ -1,0 +1,104 @@
+#!SHELL=/bin/sh
+
+# This file contains a set of rules used by the "make"
+#   command.  This makefile $(MAKEFILE) tells "make" how the
+#   executable random_walk $(COMMAND) should be created
+#   from the source files $(SRCS) via the object
+#   files $(OBJS) and the header files $(HDRS); type the command:
+#        "make -f make_lm"
+#   where make_lm should be replaced by the name of
+#   the makefile.
+# 
+# This file also tells make what to do if arguments
+#   follow the "make" command.
+#
+# To remove the OBJS files; type the command:
+#        "make -f make_lm clean"
+#
+# To create a gzipped tar file with name $(COMMAND).tar.gz
+#  containing this makefile and the SRCS files,
+#  type the command:
+#        "make -f make_lm tarz"
+ 
+SRCS= \
+LdMatching.cpp \
+Freestreaming.cpp \
+CellData.cpp \
+lmtest.cpp \
+EOS.cpp \
+arsenal.cpp \
+mistools.cpp \
+gauss_quadrature.cpp \
+ParameterReader.cpp
+  
+OBJS= \
+LdMatching.o \
+Freestreaming.o \
+CellData.o \
+lmtest.o \
+EOS.o\
+arsenal.o \
+mistools.o \
+gauss_quadrature.o \
+ParameterReader.o
+
+HDRS= \
+CellData.h \
+Freestreaming.h \
+Table.h \
+gauss_quadrature.h \
+EOS.h  \
+LdMatching.h \
+arsenal.h \
+mistools.h \
+ParameterReader.h
+
+MAKEFILE= make_lm
+
+COMMAND=  lm.e
+ 
+CC= g++
+CFLAGS= -O3
+WARNFLAGS= -Wall -W -Wshadow -fno-common
+MOREFLAGS= -ansi -pedantic -Wpointer-arith -Wcast-qual -Wcast-align \
+           -Wwrite-strings -fshort-enums 
+LDFLAGS= -lgsl -lgslcblas 
+ 
+ 
+ 
+$(COMMAND): $(OBJS) 
+	$(CC) -o $(COMMAND) $(OBJS) $(LDFLAGS) $(LIBS)
+                 
+LdMatching.o : LdMatching.cpp 
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c LdMatching.cpp -o LdMatching.o
+                 
+Freestreaming.o : Freestreaming.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c Freestreaming.cpp -o Freestreaming.o
+
+CellData.o : CellData.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c CellData.cpp -o CellData.o
+
+EOS.o : EOS.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c EOS.cpp -o EOS.o
+
+arsenal.o : arsenal.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c arsenal.cpp -o arsenal.o
+
+mistools.o : mistools.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c mistools.cpp -o mistools.o
+
+gauss_quadrature.o : gauss_quadrature.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c gauss_quadrature.cpp -o gauss_quadrature.o
+
+ParameterReader.o : ParameterReader.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c ParameterReader.cpp -o ParameterReader.o
+
+lmtest.o : lmtest.cpp
+	$(CC) $(CFLAGS) $(WARNFLAGS)  -c lmtest.cpp -o lmtest.o					
+ 
+clean:
+	rm -f $(OBJS)
+ 
+tarz:
+	tar zcf - $(MAKEFILE) $(SRCS) $(HDRS) > $(COMMAND).tar.gz
+ 
