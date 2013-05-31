@@ -23,12 +23,12 @@ int main(int argc, char *argv[])
   int event_num;
   if(event_flag <= 0)
   {
-    event_num = 1;
+    event_num = 1;  //run multiple eventss
   }
   else if(event_flag > 0)
   {
     event_num = event_flag;
-    nevents = event_flag;
+    nevents = event_flag;   //only run one events
   }
 
   //Timing the current run
@@ -42,8 +42,10 @@ int main(int argc, char *argv[])
     //prepare readin filename for event-by-event eccentricity fluctuation
     ostringstream filename_stream;
     filename_stream.str("");
-    filename_stream << "data/sd_event_"
+    filename_stream << "data/events/sd_event_"
                     << event_num  <<"_block.dat";
+    // filename_stream << "data/sdAvg_order_2_block"
+    //                 << ".dat";
 
     //prepare data directory for final profiles of different events and 
     //different matching time

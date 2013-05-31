@@ -127,8 +127,8 @@ void LdMatching::MultiMatching(string filename)
   for(int t_i=0; t_i < maxT; t_i++)
   {
     double tau1 = Taui + t_i*Dtau;   
-    delta_tau = tau1 - Tau0; 
 
+    delta_tau = tau1 - Tau0; 
     //prepare the folder for output profiles
     ostringstream dst_folder_stream;
     dst_folder_stream << Result_Dir << "/" << tau1;
@@ -160,11 +160,11 @@ void LdMatching::MultiMatching(string filename)
       ostringstream filename_stream_uy;
       filename_stream_uy.str("");
       filename_stream_uy << Dst_Folder << "/uy_profile_kln_tauf_" << Tau0+delta_tau << ".dat";
-      ostringstream filename_stream_Tmn;
-      filename_stream_Tmn << Dst_Folder << "/Tmn_profile_kln_tauf_" << Tau0+delta_tau << ".dat";
+      // ostringstream filename_stream_Tmn;
+      // filename_stream_Tmn << Dst_Folder << "/Tmn_profile_kln_tauf_" << Tau0+delta_tau << ".dat";
       OutputTable_ux(filename_stream_ux.str().c_str());
       OutputTable_uy(filename_stream_uy.str().c_str());
-      OutputTmnTable(filename_stream_Tmn.str().c_str(), 0 , 0, 0);
+      // OutputTmnTable(filename_stream_Tmn.str().c_str(), 0 , 0, 0);
     }
 
     of_epx << setw(8)  << setprecision(5) << Tau0
@@ -232,11 +232,11 @@ void LdMatching::CalTmunu(const int iRap)
     cout << "Calculating Tmn needs dN/dyd^2r table!" << endl;
     exit(-1);
   }
-  if(delta_tau==0)
-  {
-    cout << "Matching at inital time! Scale the energy density afterwards!" << endl;
-    delta_tau = 1;
-  }
+  // if(delta_tau==0)
+  // {
+  //   cout << "Matching at inital time! Scale the energy density afterwards!" << endl;
+  //   delta_tau = 1;
+  // }
   //block for gaussian integration
   int kind=1;
   const int order=100;   //debugging
