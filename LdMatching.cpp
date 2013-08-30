@@ -117,13 +117,71 @@ void LdMatching::MultiMatching(string filename)
   Dtau = lm_params->getVal("dtau");
   int maxT = (int)((Tauf-Taui)/Dtau+0.1)+1;
 
+//find the eccentricity at initial time Tau0 which serves as normalization factor
+//for v2/ecc2.
+  ofstream of_epx0;
+  of_epx0.open("data/Epx_inital.dat", std::ios_base::app);
+
+  double tau10 = Tau0;   
+  delta_tau = tau10 - Tau0; 
+  cout << "Start to do the Matching at tau0=" << tau10
+       << endl;  
+  //prepare the folder for output profiles
+  ostringstream dst_folder_stream0;
+  dst_folder_stream0 << Result_Dir << "/" << tau10;
+  Dst_Folder = dst_folder_stream0.str();
+  system(("mkdir " + Dst_Folder).c_str());
+
+  Streaming=new FreeStrm(Xmax, Ymax, dx, dy,
+        nRap, rapMin, rapMax, Tau0, tau10);
+  Streaming->CopyTable(dNd2rdyTable);  //assign data table to FreeStrm class
+                                       //to speed up interpolation
+  //data table for LdMatching result et.al.
+  DataTable=new CellData(Xmax, Ymax, dx, dy, nRap, rapMin, rapMax);
+  
+  CalTmunu(0);
+  Matching_eig(1);   //Do the matching and output energy density profile
+      
+  CalPresTable();  //only can be done if ed table is ready
+  GenerateSdTable(); //ideal EOS is still under testing
+  CalBulkVis();   //calculate Bulk Pi and output it
+  CalShearVis();  //calculate shear Pi and output Pi tensor
+
+  //output velocity profile
+  if(outputData==true)
+  {
+    ostringstream filename_stream_ux0;
+    filename_stream_ux0.str("");
+    filename_stream_ux0 << Dst_Folder << "/ux_profile_kln_tauf_" << Tau0+delta_tau << ".dat";
+    ostringstream filename_stream_uy0;
+    filename_stream_uy0.str("");
+    filename_stream_uy0 << Dst_Folder << "/uy_profile_kln_tauf_" << Tau0+delta_tau << ".dat";
+    // ostringstream filename_stream_Tmn;
+    // filename_stream_Tmn << Dst_Folder << "/Tmn_profile_kln_tauf_" << Tau0+delta_tau << ".dat";
+    OutputTable_ux(filename_stream_ux0.str().c_str());
+    OutputTable_uy(filename_stream_uy0.str().c_str());
+    // OutputTmnTable(filename_stream_Tmn.str().c_str(), 0 , 0, 0);
+  }
+
+  of_epx0 << setw(8)  << setprecision(5) << Tau0
+         << setw(12) << setprecision(5) << tau10
+         << setw(20) << setprecision(10)<< getEpx(2,0)
+         << setw(20) << setprecision(10)<< getEpx(3,0)<<endl;
+  cout << "Matching is done at tau=" << tau10 
+       << "!" << endl<<endl;
+  //clean up before leaving
+  delete DataTable;
+  delete Streaming;
+  of_epx0.close();
+
+
+//Now do the matching specified by the given parameters from Taui to Tauf
   ofstream of_epx;
   of_epx.open("data/Epx_time_evolve.dat", std::ios_base::app);
 
   cout << "Start to do the Matching from tau_i=" << Taui
        << " to tau_f=" << Tauf
-       << endl;
-
+       << endl;  
   for(int t_i=0; t_i < maxT; t_i++)
   {
     double tau1 = Taui + t_i*Dtau;   
@@ -146,8 +204,7 @@ void LdMatching::MultiMatching(string filename)
     Matching_eig(1);   //Do the matching and output energy density profile
         
     CalPresTable();  //only can be done if ed table is ready
-    if(EOS_type==2)
-      GenerateSdTable(); //only can be done if ed table is ready
+    GenerateSdTable(); //ideal EOS is still under testing
     CalBulkVis();   //calculate Bulk Pi and output it
     CalShearVis();  //calculate shear Pi and output Pi tensor
 
@@ -176,7 +233,7 @@ void LdMatching::MultiMatching(string filename)
     //clean up before leaving
     delete DataTable;
     delete Streaming;
-  }
+  }//<->for t_i=1:maxT
   of_epx.close();
 }
 
@@ -555,7 +612,7 @@ This is excuted after the matching
 
 
 
-double LdMatching::GetPressure(double edens)
+double LdMatching::GetIdealPressure(double edens)
 {
   return edens/3.0;   //ideal gas
 }
@@ -572,7 +629,7 @@ void LdMatching::CalPresTable(const int nrap)
       for(int i=0;i<Maxx;i++)
         for(int j=0;j<Maxy;j++)
         {
-          pres_temp=GetPressure(DataTable->GetEd(iy, i, j));
+          pres_temp=GetIdealPressure(DataTable->GetEd(iy, i, j));
           DataTable->SetPres(iy, i, j, pres_temp);
         }
   }
@@ -601,14 +658,42 @@ void LdMatching::CalPresTable(const int nrap)
 void LdMatching::GenerateSdTable(const int nrap)
 {
   double sd_temp = 0;
+  double ed_max = edMax;
 //  cout<<"Generating Entropy density table from energy density------------"<<endl;
-  for(int iy=0;iy<nrap;iy++)
-    for(int i=0;i<Maxx;i++)
-      for(int j=0;j<Maxy;j++)
-      {
-        sd_temp=eos.sd(DataTable->GetEd(iy, i, j)); // Return the entropy density from the energy density ed0.
-        DataTable->SetSd(iy, i, j, sd_temp);
-      }
+
+  if(EOS_type == 1)   //ideal EOS, assuming free massless gluonic gas
+  {
+    for(int iy=0;iy<nrap;iy++)
+      for(int i=0;i<Maxx;i++)
+        for(int j=0;j<Maxy;j++)
+        {
+          double ed_temp = DataTable->GetEd(iy, i, j);
+
+          if(ed_temp*1e10 < ed_max)  //regulate dilute region
+          {
+            DataTable->SetSd(iy, i, j, 0);
+          }
+
+          else
+          {
+            double temp = pow(15.0*ed_temp/8.0/M_PI/M_PI, 0.25);
+            sd_temp = 4.0/3.0*ed_temp/temp; 
+            DataTable->SetSd(iy, i, j, sd_temp);
+          }
+        }//for j=0:Maxy    
+  }//if EOS_type==1
+
+  else if(EOS_type == 2)
+  {
+    for(int iy=0;iy<nrap;iy++)
+      for(int i=0;i<Maxx;i++)
+        for(int j=0;j<Maxy;j++)
+        {
+          sd_temp=eos.sd(DataTable->GetEd(iy, i, j)); // Return the entropy density from the energy density ed0.
+          DataTable->SetSd(iy, i, j, sd_temp);
+        }    
+  }
+
 //  cout<<"Entropy density table generated!"<<endl;  
         //prepare file name
   if(outputData==true)
@@ -635,7 +720,7 @@ void LdMatching::CalBulkVis(const int nrap)
     for(int i=0;i<Maxx;i++)
       for(int j=0;j<Maxy;j++)
       {
-        //energy density equals zero, thi points in dilute region, thus not important, debug
+        //energy density equals zero, if points are in the dilute region, thus not important, debug
         if(DataTable->GetEd(iy, i, j)==0&&EOS_type==1)  //ideal gas
         {
           result = 0;

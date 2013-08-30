@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
     filename_stream.str("");
     filename_stream << "data/events/sd_event_"
                     << event_num  <<"_block.dat";
-    // filename_stream << "data/sdAvg_order_2_block"
-    //                 << ".dat";
+//    filename_stream << "data/sdAvg_order_2_block"
+//                    << ".dat";
 
     //prepare data directory for final profiles of different events and 
     //different matching time

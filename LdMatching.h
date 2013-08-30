@@ -66,7 +66,7 @@ public:
     void Lower_matrix_double(gsl_matrix *dest, gsl_matrix *src);  //give g_ma * S^ab * g_bn
     double Contract_matrix(gsl_matrix *upper); //give the contraction T^mn * T_mn
 
-    double GetPressure(double edens);
+    double GetIdealPressure(double edens);
 
     void CalBulkVis(const int nrap=1);
     void CalShearVis(const int nrap=1);
