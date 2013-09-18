@@ -43,6 +43,7 @@ private:
 	EOS eos;
     bool outputData;
     string Result_Dir, Dst_Folder;
+    double event_phi2, event_phi3; //store the spatial angle phi2 and phi3 
 
     void findCM_ed(const int iRap = 0);  //find the center of the profile
     //A general function to shift energy density table to a new center (x0, y0) and/or rotate phi angle clockwisely

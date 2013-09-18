@@ -32,6 +32,8 @@ LdMatching::LdMatching(ParameterReader *params_in, string result_dir)
   Ycm = 0.;
   edMax = -1.;
   dNd2rdyTable = 0;
+  event_phi2 = 0.;
+  event_phi3 = 0.;
 
   EOS_type = lm_params->getVal("iEOS");
   if(EOS_type==2)
@@ -162,16 +164,18 @@ void LdMatching::MultiMatching(string filename)
     OutputTable_uy(filename_stream_uy0.str().c_str());
     // OutputTmnTable(filename_stream_Tmn.str().c_str(), 0 , 0, 0);
   }
-
   of_epx0 << setw(8)  << setprecision(5) << Tau0
          << setw(12) << setprecision(5) << tau10
          << setw(20) << setprecision(10)<< getEpx(2,0)
-         << setw(20) << setprecision(10)<< getEpx(3,0)<<endl;
-  cout << "Matching is done at tau=" << tau10 
-       << "!" << endl<<endl;
+         << setw(20) << setprecision(10)<< getEpx(3,0);
+  of_epx0<< setw(20) << setprecision(10)<< event_phi2
+         << setw(20) << setprecision(10)<< event_phi3
+         <<endl;
   //clean up before leaving
   delete DataTable;
   delete Streaming;
+  event_phi2 = 0.;
+  event_phi3 = 0.;
   of_epx0.close();
 
 
@@ -1387,8 +1391,12 @@ double LdMatching::getEpx(int nth_order, const int iRap)
   
   Epx = sqrt( epx_nu_real * epx_nu_real + epx_nu_img * epx_nu_img )
        /(epx_dn + 1e-18);
-  Epx_angle = -atan2( epx_nu_img, (epx_nu_real + 1e-18))/nth_order;
-
+  Epx_angle = atan2( epx_nu_img, (epx_nu_real + 1e-18))/nth_order + M_PI/nth_order;
+  // write down the angle
+  if(nth_order==2)
+      event_phi2 = Epx_angle;
+  else if (nth_order==3)
+      event_phi3 = Epx_angle; 
   // cout<<"Spatial Eccentricity complete!"<<endl
   //     <<"epx real=" << epx_nu_real <<", epx imaginary=" << epx_nu_img << endl;
   // cout << "Epx_angle =" <<Epx_angle << endl;
